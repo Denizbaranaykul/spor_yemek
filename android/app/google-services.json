@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "29538190952",
+    "project_id": "sporveyemek",
+    "storage_bucket": "sporveyemek.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:29538190952:android:e4c3e2e8c08c8b4440dddd",
+        "android_client_info": {
+          "package_name": "com.denizbaranaykul.spor_yemek"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVHm6owXq5Cihsrdj2wvVhEhzFn6q6Dnw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
