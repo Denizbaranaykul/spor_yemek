@@ -2,20 +2,52 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AIService {
-  // API Anahtarını buraya yapıştır
+  // API Anahtarı (Güvenlik için bu anahtarı daha sonra .env dosyasına taşıman önerilir)
   static const String _apiKey = 'AIzaSyB8iKK69PAAGdTikqzXG1qb9cpPkjZzZ7I';
-  
-  // En güncel ve hata payı en düşük endpoint yapısı
-  static const String _geminiApiUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-  /// Kullanıcının girdiği yemek açıklamasını analiz eder ve besin değerlerini döner.
+  // Free tier'da en yüksek kota: 15 RPM, 1000 RPD
+  static const String _model = 'gemini-2.5-flash-lite';
+  static const String _geminiApiUrl =
+      'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent';
+
+  /// 429 (quota) hatalarında belirtilen süre kadar bekleyip tekrar dener.
+  Future<http.Response> _postWithRetry(Uri url, Map<String, dynamic> body) async {
+    const maxRetries = 2;
+    for (var i = 0; i <= maxRetries; i++) {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 429 || i == maxRetries) return response;
+
+      // Retry-After veya mesajdaki süreyi parse et (ör: "retry in 52.02s")
+      final bodyStr = response.body;
+      final retryMatch = RegExp(r'retry in ([\d.]+)s', caseSensitive: false).firstMatch(bodyStr);
+      final waitSeconds = retryMatch != null
+          ? (double.tryParse(retryMatch.group(1)!) ?? 60).ceil().clamp(5, 90)
+          : 60;
+
+      print('⏳ Kota aşıldı, ${waitSeconds}s sonra tekrar deneniyor...');
+      await Future<void>.delayed(Duration(seconds: waitSeconds));
+    }
+    throw StateError('Unreachable');
+  }
+
+  /// Yemek açıklamasını analiz eder ve doğrudan JSON objesi döner.
   Future<Map<String, dynamic>> analyzeFood(String foodDescription) async {
     try {
-      final prompt = '''
-Aşağıdaki yemek açıklamasını analiz et ve SADECE saf bir JSON objesi döndür. 
-Markdown formatı (```json gibi) kullanma.
-Beklenen JSON Yapısı:
+final prompt = '''
+Sen bir profesyonel beslenme uzmanısın. Kullanıcının girdiği yemeği şu algoritma ile analiz et:
+
+1. ADIM (Porsiyon Analizi): Kullanıcı miktar belirtmemişse (ör: "bir baklava", "bir tabak makarna"), bu yemeğin dünyaca kabul görmüş ortalama porsiyon ağırlığını (gram cinsinden) belirle.
+2. ADIM (Referans): Bu belirlenen gramajın besin değerlerini hesapla. Kesinlikle 100g verisini doğrudan döndürme; porsiyonun ağırlığına göre (örneğin 40g baklava için) matematiksel oranlama yap.
+3. ADIM (Doğrulama): Kaloriyi (Protein*4 + Karb*4 + Yağ*9) formülüyle hesapla ve sonucu tam sayıya yuvarla.
+
+Yemek: "$foodDescription"
+
+SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir açıklama ekleme:
 {
   "calories": sayi,
   "macros": {
@@ -24,35 +56,29 @@ Beklenen JSON Yapısı:
     "fat": sayi
   }
 }
-
-Analiz edilecek yemek: "$foodDescription"
 ''';
 
-      final response = await http.post(
-        Uri.parse('$_geminiApiUrl?key=$_apiKey'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'contents': [
-            {
-              'parts': [{'text': prompt}]
-            }
-          ],
-          'generationConfig': {
-            'temperature': 0.1, // Daha kesin ve teknik yanıtlar için
-            'topK': 1,
-            'topP': 1,
+      final body = {
+        'contents': [
+          {
+            'parts': [{'text': prompt}]
           }
-        }),
-      ).timeout(const Duration(seconds: 15));
+        ],
+        'generationConfig': {
+          'temperature': 0.1,
+          'responseMimeType': 'application/json',
+        }
+      };
+      final response = await _postWithRetry(
+        Uri.parse('$_geminiApiUrl?key=$_apiKey'),
+        body,
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         
-        // Yanıtın içindeki text kısmını al
+        // responseMimeType kullandığı için rawText doğrudan geçerli bir JSON stringidir
         String rawText = data['candidates'][0]['content']['parts'][0]['text'];
-        
-        // Model bazen her şeye rağmen markdown tırnakları ekleyebilir, temizleyelim
-        rawText = rawText.replaceAll('```json', '').replaceAll('```', '').trim();
         
         print('📊 AI Yanıtı: $rawText');
         return jsonDecode(rawText) as Map<String, dynamic>;
@@ -66,31 +92,34 @@ Analiz edilecek yemek: "$foodDescription"
     }
   }
 
-  /// Haftalık verilere dayanarak kullanıcıya Türkçe tavsiye verir.
+  /// Haftalık verilere göre Türkçe tavsiye verir.
   Future<String> generateRecommendation({
     required int weeklyCalories,
     required double weeklyProtein,
     required int weeklyWorkouts,
   }) async {
     try {
-      final prompt = '''
-Bir fitness koçu gibi davran. Aşağıdaki haftalık verilere göre kısa (max 2 cümle), 
-motive edici ve Türkçe bir tavsiye ver:
-- Toplam Kalori: $weeklyCalories kcal
-- Toplam Protein: ${weeklyProtein.toStringAsFixed(1)}g
-- Yapılan Spor Sayısı: $weeklyWorkouts
-''';
-
-      final response = await http.post(
+      final body = {
+        'contents': [
+          {
+            'parts': [
+              {
+                'text': '''
+Bir fitness koçu gibi davran. Aşağıdaki verilere göre 12% yağ oranı hedefine uygun, 
+kısa (max 2 cümle), motive edici ve Türkçe bir tavsiye ver:
+- Haftalık Kalori: $weeklyCalories kcal
+- Haftalık Protein: ${weeklyProtein.toStringAsFixed(1)}g
+- Antrenman Sayısı: $weeklyWorkouts
+'''
+              }
+            ]
+          }
+        ],
+        'generationConfig': {'temperature': 0.7}
+      };
+      final response = await _postWithRetry(
         Uri.parse('$_geminiApiUrl?key=$_apiKey'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'contents': [
-            {
-              'parts': [{'text': prompt}]
-            }
-          ]
-        }),
+        body,
       );
 
       if (response.statusCode == 200) {
