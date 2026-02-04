@@ -2,43 +2,62 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AIService {
-  // API Anahtarı (Güvenlik için bu anahtarı daha sonra .env dosyasına taşıman önerilir)
-  static const String _apiKey = 'AIzaSyB8iKK69PAAGdTikqzXG1qb9cpPkjZzZ7I';
+  // 1. ADIM: Hazırladığın tüm keyleri bu listeye ekle
+  final List<String> _apiKeys = [
+    'AIzaSyAFiN654jghbisSM59GuPCRVI4yR3c4o5k', // Mevcut keyin
+    'AIzaSyDqpz1qx5b9g478u14Lz_5UVvN7wnk0ACE',
+    'AIzaSyDAQJFbWa3rj4V-xpw90NF_URHRE7yaxrY',
+    'AIzaSyAI7mxmk0DPyPToI4S9yVQSzxHPCfKCPfA',
+    'AIzaSyBXF-v1CP105vPtcMujjQifsloMXgs9yhw',
+    'AIzaSyBYhvPWrH335_VxWXNkBo8NDptzOx6d4-Y',
+    'AIzaSyBeAF5WmXHxf66porhgeOpPeGReAKJIFUQ',
+  ];
 
-  // Free tier'da en yüksek kota: 15 RPM, 1000 RPD
-  static const String _model = 'gemini-2.5-flash-lite';
+  int _currentKeyIndex = 0;
+
+  static const String _model = 'gemini-2.5-flash';
+  
+  // URL artık key'i içinde barındırmıyor, metot içinde ekliyoruz
   static const String _geminiApiUrl =
       'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent';
 
-  /// 429 (quota) hatalarında belirtilen süre kadar bekleyip tekrar dener.
-  Future<http.Response> _postWithRetry(Uri url, Map<String, dynamic> body) async {
-    const maxRetries = 2;
-    for (var i = 0; i <= maxRetries; i++) {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      ).timeout(const Duration(seconds: 15));
+  String get _currentApiKey => _apiKeys[_currentKeyIndex];
 
-      if (response.statusCode != 429 || i == maxRetries) return response;
+  /// 429 hatalarında key değiştirir ve işlemi tekrar dener.
+  Future<http.Response> _postWithRetryAndRotation(Map<String, dynamic> body) async {
+    int attempts = 0;
+    // Elimizdeki toplam key sayısı kadar deneme hakkı veriyoruz
+    while (attempts < _apiKeys.length) {
+      final Uri url = Uri.parse('$_geminiApiUrl?key=$_currentApiKey');
+      
+      try {
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(body),
+        ).timeout(const Duration(seconds: 15));
 
-      // Retry-After veya mesajdaki süreyi parse et (ör: "retry in 52.02s")
-      final bodyStr = response.body;
-      final retryMatch = RegExp(r'retry in ([\d.]+)s', caseSensitive: false).firstMatch(bodyStr);
-      final waitSeconds = retryMatch != null
-          ? (double.tryParse(retryMatch.group(1)!) ?? 60).ceil().clamp(5, 90)
-          : 60;
+        // Eğer kota hatası (429) aldıysak key değiştir
+        if (response.statusCode == 429) {
+          print('⚠️ Key ${_currentKeyIndex + 1} limiti doldu. Sonraki keye geçiliyor...');
+          _currentKeyIndex = (_currentKeyIndex + 1) % _apiKeys.length;
+          attempts++;
+          continue; // Döngü başına dön ve yeni key ile tekrar dene
+        }
 
-      print('⏳ Kota aşıldı, ${waitSeconds}s sonra tekrar deneniyor...');
-      await Future<void>.delayed(Duration(seconds: waitSeconds));
+        return response; // Başarılıysa veya 429 dışı bir hataysa sonucu dön
+      } catch (e) {
+        if (attempts >= _apiKeys.length - 1) rethrow;
+        _currentKeyIndex = (_currentKeyIndex + 1) % _apiKeys.length;
+        attempts++;
+      }
     }
-    throw StateError('Unreachable');
+    throw Exception('Tüm API anahtarlarının kotası doldu.');
   }
 
-  /// Yemek açıklamasını analiz eder ve doğrudan JSON objesi döner.
   Future<Map<String, dynamic>> analyzeFood(String foodDescription) async {
     try {
-final prompt = '''
+      final prompt = '''
 Sen bir profesyonel beslenme uzmanısın. Kullanıcının girdiği yemeği şu algoritma ile analiz et:
 
 1. ADIM (Porsiyon Analizi): Kullanıcı miktar belirtmemişse (ör: "bir baklava", "bir tabak makarna"), bu yemeğin dünyaca kabul görmüş ortalama porsiyon ağırlığını (gram cinsinden) belirle.
@@ -69,17 +88,12 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir açıklama eklem
           'responseMimeType': 'application/json',
         }
       };
-      final response = await _postWithRetry(
-        Uri.parse('$_geminiApiUrl?key=$_apiKey'),
-        body,
-      );
+
+      final response = await _postWithRetryAndRotation(body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
-        // responseMimeType kullandığı için rawText doğrudan geçerli bir JSON stringidir
         String rawText = data['candidates'][0]['content']['parts'][0]['text'];
-        
         print('📊 AI Yanıtı: $rawText');
         return jsonDecode(rawText) as Map<String, dynamic>;
       } else {
@@ -92,7 +106,6 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir açıklama eklem
     }
   }
 
-  /// Haftalık verilere göre Türkçe tavsiye verir.
   Future<String> generateRecommendation({
     required int weeklyCalories,
     required double weeklyProtein,
@@ -117,10 +130,8 @@ kısa (max 2 cümle), motive edici ve Türkçe bir tavsiye ver:
         ],
         'generationConfig': {'temperature': 0.7}
       };
-      final response = await _postWithRetry(
-        Uri.parse('$_geminiApiUrl?key=$_apiKey'),
-        body,
-      );
+
+      final response = await _postWithRetryAndRotation(body);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
