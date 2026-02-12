@@ -17,16 +17,21 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final List<String> _commonExercises = [
-    'Bench Press',
-    'Squat',
-    'Deadlift',
-    'Overhead Press',
-    'Barbell Row',
-    'Pull-ups',
-    'Dips',
-    'Leg Press',
-    'Bicep Curl',
+    'Lateral Raise',
+    'Sirt icin bar',
+    'Chest Press',
+    'Fly',
     'Tricep Extension',
+    'Seated Cable Row',
+    'Lat pull down',
+    'plakali sirt',
+    'Bicep Curl',
+    'Hammer Curl',
+    'sholder press',
+    'Leg Press',
+    'Leg Extension',
+    'Leg Curl',
+    'yana bacak acma',
   ];
 
   @override

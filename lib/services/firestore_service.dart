@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/daily_goals.dart';
 import '../models/meal.dart';
 import '../models/workout.dart';
 
@@ -100,6 +101,28 @@ class FirestoreService {
     // Filter and sort in memory
     workouts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return workouts;
+  }
+
+  // Daily goals
+  Future<DailyGoals> getDailyGoals() async {
+    if (_userId == null) return DailyGoals();
+
+    try {
+      final doc = await _firestore.collection('users').doc(_userId!).get();
+      if (doc.exists && doc.data() != null) {
+        return DailyGoals.fromMap(doc.data());
+      }
+    } catch (_) {}
+    return DailyGoals();
+  }
+
+  Future<void> saveDailyGoals(DailyGoals goals) async {
+    if (_userId == null) throw Exception('User not authenticated');
+
+    await _firestore.collection('users').doc(_userId!).set(
+      goals.toMap(),
+      SetOptions(merge: true),
+    );
   }
 }
 

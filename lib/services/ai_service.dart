@@ -42,14 +42,22 @@ class AIService {
           print('⚠️ Key ${_currentKeyIndex + 1} limiti doldu. Sonraki keye geçiliyor...');
           _currentKeyIndex = (_currentKeyIndex + 1) % _apiKeys.length;
           attempts++;
+          // Rate limit'in hafiflemesi için kısa bekleme
+          final retryMatch = RegExp(r'retry in ([\d.]+)s', caseSensitive: false).firstMatch(response.body);
+          final waitSeconds = retryMatch != null
+              ? (double.tryParse(retryMatch.group(1)!) ?? 2).ceil().clamp(2, 60)
+              : 3;
+          await Future<void>.delayed(Duration(seconds: waitSeconds));
           continue; // Döngü başına dön ve yeni key ile tekrar dene
         }
 
         return response; // Başarılıysa veya 429 dışı bir hataysa sonucu dön
       } catch (e) {
         if (attempts >= _apiKeys.length - 1) rethrow;
+        print('⚠️ İstek hatası, key rotasyonu... $e');
         _currentKeyIndex = (_currentKeyIndex + 1) % _apiKeys.length;
         attempts++;
+        await Future<void>.delayed(const Duration(seconds: 2));
       }
     }
     throw Exception('Tüm API anahtarlarının kotası doldu.');
@@ -62,7 +70,6 @@ Sen bir profesyonel beslenme uzmanısın. Kullanıcının girdiği yemeği şu a
 
 1. ADIM (Porsiyon Analizi): Kullanıcı miktar belirtmemişse (ör: "bir baklava", "bir tabak makarna"), bu yemeğin dünyaca kabul görmüş ortalama porsiyon ağırlığını (gram cinsinden) belirle.
 2. ADIM (Referans): Bu belirlenen gramajın besin değerlerini hesapla. Kesinlikle 100g verisini doğrudan döndürme; porsiyonun ağırlığına göre (örneğin 40g baklava için) matematiksel oranlama yap.
-3. ADIM (Doğrulama): Kaloriyi (Protein*4 + Karb*4 + Yağ*9) formülüyle hesapla ve sonucu tam sayıya yuvarla.
 
 Yemek: "$foodDescription"
 
