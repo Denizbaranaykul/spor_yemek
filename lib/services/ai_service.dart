@@ -1,152 +1,167 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 class AIService {
-  // 1. ADIM: Hazırladığın tüm keyleri bu listeye ekle
-  final List<String> _apiKeys = [
-    'AIzaSyAFiN654jghbisSM59GuPCRVI4yR3c4o5k', // Mevcut keyin
-    'AIzaSyDqpz1qx5b9g478u14Lz_5UVvN7wnk0ACE',
-    'AIzaSyDAQJFbWa3rj4V-xpw90NF_URHRE7yaxrY',
-    'AIzaSyAI7mxmk0DPyPToI4S9yVQSzxHPCfKCPfA',
-    'AIzaSyBXF-v1CP105vPtcMujjQifsloMXgs9yhw',
-    'AIzaSyBYhvPWrH335_VxWXNkBo8NDptzOx6d4-Y',
-    'AIzaSyBeAF5WmXHxf66porhgeOpPeGReAKJIFUQ',
-  ];
-
   int _currentKeyIndex = 0;
 
-  static const String _model = 'gemini-2.5-flash';
-  
-  // URL artık key'i içinde barındırmıyor, metot içinde ekliyoruz
-  static const String _geminiApiUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent';
-
-  String get _currentApiKey => _apiKeys[_currentKeyIndex];
-
-  /// 429 hatalarında key değiştirir ve işlemi tekrar dener.
-  Future<http.Response> _postWithRetryAndRotation(Map<String, dynamic> body) async {
-    int attempts = 0;
-    // Elimizdeki toplam key sayısı kadar deneme hakkı veriyoruz
-    while (attempts < _apiKeys.length) {
-      final Uri url = Uri.parse('$_geminiApiUrl?key=$_currentApiKey');
-      
-      try {
-        final response = await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(body),
-        ).timeout(const Duration(seconds: 15));
-
-        // Eğer kota hatası (429) aldıysak key değiştir
-        if (response.statusCode == 429) {
-          print('⚠️ Key ${_currentKeyIndex + 1} limiti doldu. Sonraki keye geçiliyor...');
-          _currentKeyIndex = (_currentKeyIndex + 1) % _apiKeys.length;
-          attempts++;
-          // Rate limit'in hafiflemesi için kısa bekleme
-          final retryMatch = RegExp(r'retry in ([\d.]+)s', caseSensitive: false).firstMatch(response.body);
-          final waitSeconds = retryMatch != null
-              ? (double.tryParse(retryMatch.group(1)!) ?? 2).ceil().clamp(2, 60)
-              : 3;
-          await Future<void>.delayed(Duration(seconds: waitSeconds));
-          continue; // Döngü başına dön ve yeni key ile tekrar dene
-        }
-
-        return response; // Başarılıysa veya 429 dışı bir hataysa sonucu dön
-      } catch (e) {
-        if (attempts >= _apiKeys.length - 1) rethrow;
-        print('⚠️ İstek hatası, key rotasyonu... $e');
-        _currentKeyIndex = (_currentKeyIndex + 1) % _apiKeys.length;
-        attempts++;
-        await Future<void>.delayed(const Duration(seconds: 2));
-      }
+  List<String> _getApiKeys() {
+    final keyString = dotenv.env['GEMINI_API_KEY'] ?? '';
+    if (keyString.isEmpty) {
+      return [];
     }
-    throw Exception('Tüm API anahtarlarının kotası doldu.');
+    // Anahtarları virgülle ayırıp boşlukları temizleyerek listeye çeviriyoruz
+    return keyString.split(',').map((k) => k.trim()).where((k) => k.isNotEmpty).toList();
   }
 
+  String _getCurrentKey(List<String> keys) {
+    if (keys.isEmpty) return '';
+    // Endeksi güvenli sınırlar içinde tutuyoruz
+    if (_currentKeyIndex >= keys.length) {
+      _currentKeyIndex = 0;
+    }
+    return keys[_currentKeyIndex];
+  }
+
+  void _rotateKey(List<String> keys) {
+    if (keys.isNotEmpty) {
+      _currentKeyIndex = (_currentKeyIndex + 1) % keys.length;
+      print('🔄 API Anahtarı değiştirildi. Yeni endeks: $_currentKeyIndex');
+    }
+  }
+
+  /// Yemek Analizi: Gemini API'yi doğrudan çağırır. 
+  /// 429 gibi hatalarda (veya diğer GenerativeAIException durumlarında) diğer anahtarlara geçer.
   Future<Map<String, dynamic>> analyzeFood(String foodDescription) async {
-    try {
-      final prompt = '''
-Sen bir profesyonel beslenme uzmanısın. Kullanıcının girdiği yemeği şu algoritma ile analiz et:
+    final keys = _getApiKeys();
+    if (keys.isEmpty) {
+      throw Exception('GEMINI_API_KEY bulunamadı. Lütfen .env dosyanıza ekleyin.');
+    }
 
-1. ADIM (Porsiyon Analizi): Kullanıcı miktar belirtmemişse (ör: "bir baklava", "bir tabak makarna"), bu yemeğin dünyaca kabul görmüş ortalama porsiyon ağırlığını (gram cinsinden) belirle.
-2. ADIM (Referans): Bu belirlenen gramajın besin değerlerini hesapla. Kesinlikle 100g verisini doğrudan döndürme; porsiyonun ağırlığına göre (örneğin 40g baklava için) matematiksel oranlama yap.
+    int attempts = 0;
+    final maxAttempts = keys.length; // Her anahtarı bir kez deneyelim
 
-Yemek: "$foodDescription"
+    while (attempts < maxAttempts) {
+      try {
+        final currentKey = _getCurrentKey(keys);
+        final model = GenerativeModel(
+          model: 'gemini-2.5-flash',
+          apiKey: currentKey,
+          generationConfig: GenerationConfig(
+            responseMimeType: 'application/json',
+          ),
+        );
 
-SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir açıklama ekleme:
+        final prompt = '''
+Lütfen kullanıcının yediği şu yemeği analiz et: "$foodDescription"
+
+Sadece ve sadece aşağıdaki formattaki bir JSON döndür. Başka hiçbir metin veya açıklama ekleme:
 {
-  "calories": sayi,
+  "calories": Toplam kalori miktarı (sayı),
   "macros": {
-    "protein": sayi,
-    "carbs": sayi,
-    "fat": sayi
+    "protein": Protein miktarı gram (sayı),
+    "carbs": Karbonhidrat miktarı gram (sayı),
+    "fat": Yağ miktarı gram (sayı)
   }
 }
+Birimleri yazma, sadece sayı değerlerini gir. Eğer tam emin değilsen mantıklı ortalama değerler kullan.
 ''';
 
-      final body = {
-        'contents': [
-          {
-            'parts': [{'text': prompt}]
-          }
-        ],
-        'generationConfig': {
-          'temperature': 0.1,
-          'responseMimeType': 'application/json',
+        final content = [Content.text(prompt)];
+        final response = await model.generateContent(content);
+        final responseText = response.text;
+
+        if (responseText == null || responseText.isEmpty) {
+          throw Exception('Gemini API boş yanıt döndürdü.');
         }
-      };
 
-      final response = await _postWithRetryAndRotation(body);
+        // Her ihtimale karşı markdown formatı (```json ... ```) kaldıralım
+        String cleanedText = responseText.replaceAll('```json', '').replaceAll('```', '').trim();
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        String rawText = data['candidates'][0]['content']['parts'][0]['text'];
-        print('📊 AI Yanıtı: $rawText');
-        return jsonDecode(rawText) as Map<String, dynamic>;
-      } else {
-        print('❌ API Hata Detayı: ${response.body}');
-        throw Exception('API Hatası: ${response.statusCode}');
+        final Map<String, dynamic> decodedData = jsonDecode(cleanedText);
+        print('📊 AI Analiz Sonucu: $decodedData');
+        return decodedData;
+      } on GenerativeAIException catch (e) {
+        print('⚠️ GenerativeAIException Hatası (analyzeFood): $e');
+        // Özellikle ResourceExhausted (429) yakalamak için veya genel bir kısıtlama hatasında rotasyon yap.
+        if (e.toString().contains('429') || e.toString().toLowerCase().contains('quota') || e.toString().toLowerCase().contains('exhausted')) {
+          attempts++;
+          if (attempts < maxAttempts) {
+             print('⏳ 429 / Quota Hatası alındı. Başka bir API anahtarına geçiliyor...');
+            _rotateKey(keys);
+          } else {
+             throw Exception('Tüm API anahtarlarının limiti doldu (429). Lütfen daha sonra tekrar deneyin.');
+          }
+        } else {
+           // 429 dışı bir API hatasıysa direkt fırlat
+           rethrow;
+        }
+      } catch (e) {
+        print('⚠️ AI Service Hatası (analyzeFood): $e');
+        rethrow;
       }
-    } catch (e) {
-      print('⚠️ AI Service Error: $e');
-      rethrow;
     }
+    
+    throw Exception('Analiz işlemi başarısız oldu.');
   }
 
+  /// Tavsiye Oluşturma: Gemini kullanarak genel bir sağlık / diyet tavsiyesi verir.
   Future<String> generateRecommendation({
     required int weeklyCalories,
     required double weeklyProtein,
     required int weeklyWorkouts,
   }) async {
-    try {
-      final body = {
-        'contents': [
-          {
-            'parts': [
-              {
-                'text': '''
-Bir fitness koçu gibi davran. Aşağıdaki verilere göre 12% yağ oranı hedefine uygun, 
-kısa (max 2 cümle), motive edici ve Türkçe bir tavsiye ver:
-- Haftalık Kalori: $weeklyCalories kcal
-- Haftalık Protein: ${weeklyProtein.toStringAsFixed(1)}g
-- Antrenman Sayısı: $weeklyWorkouts
-'''
-              }
-            ]
-          }
-        ],
-        'generationConfig': {'temperature': 0.7}
-      };
-
-      final response = await _postWithRetryAndRotation(body);
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['candidates'][0]['content']['parts'][0]['text'].trim();
-      }
-      return 'Harika ilerliyorsun, veri girişi yapmaya devam et!';
-    } catch (e) {
-      return 'Verileriniz şu an analiz edilemiyor, ancak pes etmeyin!';
+    final keys = _getApiKeys();
+    if (keys.isEmpty) {
+      return 'Tavsiye oluşturulamadı: GEMINI_API_KEY bulunamadı.';
     }
+
+    int attempts = 0;
+    final maxAttempts = keys.length;
+
+    while (attempts < maxAttempts) {
+      try {
+        final currentKey = _getCurrentKey(keys);
+        final model = GenerativeModel(
+          model: 'gemini-1.5-flash',
+          apiKey: currentKey,
+        );
+
+        final prompt = '''
+Kullanıcının bu haftaki spor ve beslenme gelişimi şu şekilde:
+- Alınan Toplam Kalori: $weeklyCalories kcal
+- Alınan Toplam Protein: $weeklyProtein g
+- Haftalık Antrenman Sayısı: $weeklyWorkouts
+
+Bu verileri göz önünde bulundurarak, samimi, kısa, motive edici ve yapıcı bir spor/diyet tavsiyesi ver (maksimum 2 cümle).
+''';
+
+        final content = [Content.text(prompt)];
+        final response = await model.generateContent(content);
+        
+        if (response.text != null && response.text!.isNotEmpty) {
+          return response.text!.trim();
+        }
+        
+        return 'Harika ilerliyorsun, hedeflerine odaklanmaya devam et!';
+      } on GenerativeAIException catch (e) {
+        print('⚠️ GenerativeAIException (generateRecommendation): $e');
+        if (e.toString().contains('429') || e.toString().toLowerCase().contains('quota') || e.toString().toLowerCase().contains('exhausted')) {
+          attempts++;
+          if (attempts < maxAttempts) {
+             print('⏳ 429 / Quota Hatası alındı. Başka bir API anahtarına geçiliyor...');
+            _rotateKey(keys);
+          } else {
+             return 'Sistem şu an yoğun (Tüm API limitleri dolu), daha sonra tekrar deneyin.';
+          }
+        } else {
+           return 'Verileriniz değerlendirilemedi, lütfen tekrar deneyin.';
+        }
+      } catch (e) {
+        print('⚠️ Tavsiye fonksiyonu genel hatası: $e');
+        return 'Verileriniz değerlendiriliyor, motivasyonunu koru!';
+      }
+    }
+    return 'Harika ilerliyorsun, hedeflerine odaklanmaya devam et!';
   }
 }

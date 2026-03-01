@@ -1,5 +1,5 @@
 class DailyGoals {
-  final int calories;
+  final double calories;
   final double protein;
   final double carbs;
   final double fat;
@@ -10,6 +10,13 @@ class DailyGoals {
     this.carbs = 250,
     this.fat = 65,
   });
+
+  static double _toDouble(dynamic v, double fallback) {
+    if (v == null) return fallback;
+    if (v is int) return v.toDouble();
+    if (v is double) return v;
+    return double.tryParse(v.toString()) ?? fallback;
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -23,10 +30,10 @@ class DailyGoals {
   factory DailyGoals.fromMap(Map<String, dynamic>? map) {
     if (map == null) return DailyGoals();
     return DailyGoals(
-      calories: (map['calories'] ?? 2000).toInt(),
-      protein: (map['protein'] ?? 150).toDouble(),
-      carbs: (map['carbs'] ?? 250).toDouble(),
-      fat: (map['fat'] ?? 65).toDouble(),
+      calories: _toDouble(map['calories'], 2000),
+      protein: _toDouble(map['protein'], 150),
+      carbs: _toDouble(map['carbs'], 250),
+      fat: _toDouble(map['fat'], 65),
     );
   }
 }

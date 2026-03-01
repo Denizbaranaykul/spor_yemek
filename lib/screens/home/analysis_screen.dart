@@ -36,7 +36,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   }
 
   Future<void> _showEditGoalsDialog() async {
-    final calController = TextEditingController(text: _goals.calories.toString());
+    final calController = TextEditingController(
+      text: _goals.calories.truncateToDouble() == _goals.calories
+          ? _goals.calories.toInt().toString()
+          : _goals.calories.toString(),
+    );
     final proController = TextEditingController(text: _goals.protein.toStringAsFixed(0));
     final carbController = TextEditingController(text: _goals.carbs.toStringAsFixed(0));
     final fatController = TextEditingController(text: _goals.fat.toStringAsFixed(0));
@@ -103,10 +107,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
     if (result == true) {
       final goals = DailyGoals(
-        calories: int.tryParse(calController.text) ?? _goals.calories,
-        protein: double.tryParse(proController.text) ?? _goals.protein,
-        carbs: double.tryParse(carbController.text) ?? _goals.carbs,
-        fat: double.tryParse(fatController.text) ?? _goals.fat,
+        calories: double.tryParse(calController.text.replaceAll(',', '.')) ?? _goals.calories,
+        protein: double.tryParse(proController.text.replaceAll(',', '.')) ?? _goals.protein,
+        carbs: double.tryParse(carbController.text.replaceAll(',', '.')) ?? _goals.carbs,
+        fat: double.tryParse(fatController.text.replaceAll(',', '.')) ?? _goals.fat,
       );
       await _firestoreService.saveDailyGoals(goals);
       if (mounted) {
@@ -143,7 +147,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               // Bugünkü tüketim
               final todayMeals = meals.where((m) =>
                   m.timestamp.isAfter(todayStart) && m.timestamp.isBefore(todayEnd)).toList();
-              final consumedCal = todayMeals.fold<int>(0, (s, m) => s + m.calories);
+              final consumedCal = todayMeals.fold<double>(0, (s, m) => s + m.calories);
               final consumedPro = todayMeals.fold<double>(
                   0, (s, m) => s + (m.macros['protein']?.toDouble() ?? 0));
               final consumedCarb = todayMeals.fold<double>(
@@ -197,8 +201,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                             _RemainingRow(
                               label: 'Kalori',
                               unit: 'kcal',
-                              target: _goals.calories.toDouble(),
-                              consumed: consumedCal.toDouble(),
+                              target: _goals.calories,
+                              consumed: consumedCal,
                             ),
                             const Divider(),
                             _RemainingRow(

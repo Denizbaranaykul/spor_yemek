@@ -77,6 +77,10 @@ class AuthService {
     String? displayName,
     double? weight,
     double? height,
+    double? waist,
+    double? belly,
+    double? arm,
+    double? leg,
   }) async {
     final user = currentUser;
     if (user == null) return;
@@ -85,6 +89,10 @@ class AuthService {
     if (displayName != null) updates['display_name'] = displayName;
     if (weight != null) updates['weight'] = weight;
     if (height != null) updates['height'] = height;
+    if (waist != null) updates['waist'] = waist;
+    if (belly != null) updates['belly'] = belly;
+    if (arm != null) updates['arm'] = arm;
+    if (leg != null) updates['leg'] = leg;
 
     if (updates.isNotEmpty) {
       await _firestore.collection('users').doc(user.uid).update(updates);

@@ -82,11 +82,19 @@ class AuthProvider with ChangeNotifier {
     String? displayName,
     double? weight,
     double? height,
+    double? waist,
+    double? belly,
+    double? arm,
+    double? leg,
   }) async {
     await _authService.updateUserProfile(
       displayName: displayName,
       weight: weight,
       height: height,
+      waist: waist,
+      belly: belly,
+      arm: arm,
+      leg: leg,
     );
     await _loadUserProfile();
   }

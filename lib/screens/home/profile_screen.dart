@@ -14,6 +14,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
+  final _waistController = TextEditingController();
+  final _bellyController = TextEditingController();
+  final _armController = TextEditingController();
+  final _legController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -29,6 +33,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _nameController.text = profile.displayName ?? '';
       _weightController.text = profile.weight?.toString() ?? '';
       _heightController.text = profile.height?.toString() ?? '';
+      _waistController.text = profile.waist?.toString() ?? '';
+      _bellyController.text = profile.belly?.toString() ?? '';
+      _armController.text = profile.arm?.toString() ?? '';
+      _legController.text = profile.leg?.toString() ?? '';
     }
   }
 
@@ -37,6 +45,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _nameController.dispose();
     _weightController.dispose();
     _heightController.dispose();
+    _waistController.dispose();
+    _bellyController.dispose();
+    _armController.dispose();
+    _legController.dispose();
     super.dispose();
   }
 
@@ -52,10 +64,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : _nameController.text.trim(),
         weight: _weightController.text.isEmpty
             ? null
-            : double.tryParse(_weightController.text),
+            : double.tryParse(_weightController.text.replaceAll(',', '.')),
         height: _heightController.text.isEmpty
             ? null
-            : double.tryParse(_heightController.text),
+            : double.tryParse(_heightController.text.replaceAll(',', '.')),
+        waist: _waistController.text.isEmpty
+            ? null
+            : double.tryParse(_waistController.text.replaceAll(',', '.')),
+        belly: _bellyController.text.isEmpty
+            ? null
+            : double.tryParse(_bellyController.text.replaceAll(',', '.')),
+        arm: _armController.text.isEmpty
+            ? null
+            : double.tryParse(_armController.text.replaceAll(',', '.')),
+        leg: _legController.text.isEmpty
+            ? null
+            : double.tryParse(_legController.text.replaceAll(',', '.')),
       );
 
       if (mounted) {
@@ -197,7 +221,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             validator: (value) {
                               if (value != null &&
                                   value.isNotEmpty &&
-                                  double.tryParse(value) == null) {
+                                  double.tryParse(value.replaceAll(',', '.')) == null) {
                                 return 'Geçerli bir sayı girin';
                               }
                               return null;
@@ -215,7 +239,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             validator: (value) {
                               if (value != null &&
                                   value.isNotEmpty &&
-                                  double.tryParse(value) == null) {
+                                  double.tryParse(value.replaceAll(',', '.')) == null) {
+                                return 'Geçerli bir sayı girin';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _waistController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Bel (cm)',
+                              prefixIcon: Icon(Icons.straighten),
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value != null &&
+                                  value.isNotEmpty &&
+                                  double.tryParse(value.replaceAll(',', '.')) == null) {
+                                return 'Geçerli bir sayı girin';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _bellyController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Göbek (cm)',
+                              prefixIcon: Icon(Icons.straighten),
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value != null &&
+                                  value.isNotEmpty &&
+                                  double.tryParse(value.replaceAll(',', '.')) == null) {
+                                return 'Geçerli bir sayı girin';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _armController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Kol (cm)',
+                              prefixIcon: Icon(Icons.straighten),
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value != null &&
+                                  value.isNotEmpty &&
+                                  double.tryParse(value.replaceAll(',', '.')) == null) {
+                                return 'Geçerli bir sayı girin';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _legController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Bacak (cm)',
+                              prefixIcon: Icon(Icons.straighten),
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value != null &&
+                                  value.isNotEmpty &&
+                                  double.tryParse(value.replaceAll(',', '.')) == null) {
                                 return 'Geçerli bir sayı girin';
                               }
                               return null;
