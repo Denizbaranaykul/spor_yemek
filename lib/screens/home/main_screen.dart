@@ -3,7 +3,6 @@ import 'food_screen.dart';
 import 'workout_screen.dart';
 import 'analysis_screen.dart';
 import 'profile_screen.dart';
-import '../../theme/app_theme.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

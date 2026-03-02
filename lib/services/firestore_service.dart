@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/daily_goals.dart';
 import '../models/meal.dart';
 import '../models/workout.dart';
+import '../models/water_log.dart';
+import '../models/cardio_log.dart';
+import '../models/step_log.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -101,6 +104,81 @@ class FirestoreService {
     // Filter and sort in memory
     workouts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return workouts;
+  }
+
+  // Water operations
+  Future<void> addWaterLog(WaterLog log) async {
+    if (_userId == null) throw Exception('User not authenticated');
+
+    await _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('water_logs')
+        .add(log.toMap());
+  }
+
+  Stream<List<WaterLog>> getWaterLogs() {
+    if (_userId == null) return Stream.value([]);
+
+    return _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('water_logs')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => WaterLog.fromMap(doc.id, doc.data()))
+            .toList());
+  }
+
+  // Cardio operations
+  Future<void> addCardioLog(CardioLog log) async {
+    if (_userId == null) throw Exception('User not authenticated');
+
+    await _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('cardio_logs')
+        .add(log.toMap());
+  }
+
+  Stream<List<CardioLog>> getCardioLogs() {
+    if (_userId == null) return Stream.value([]);
+
+    return _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('cardio_logs')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => CardioLog.fromMap(doc.id, doc.data()))
+            .toList());
+  }
+
+  // Step operations
+  Future<void> addStepLog(StepLog log) async {
+    if (_userId == null) throw Exception('User not authenticated');
+
+    await _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('step_logs')
+        .add(log.toMap());
+  }
+
+  Stream<List<StepLog>> getStepLogs() {
+    if (_userId == null) return Stream.value([]);
+
+    return _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('step_logs')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => StepLog.fromMap(doc.id, doc.data()))
+            .toList());
   }
 
   // Daily goals

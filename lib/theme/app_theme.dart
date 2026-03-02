@@ -15,11 +15,9 @@ class AppTheme {
         primary: primaryColor,
         secondary: secondaryColor,
         surface: surfaceColor,
-        background: backgroundColor,
         onPrimary: Colors.black,
         onSecondary: Colors.black,
         onSurface: Colors.white,
-        onBackground: Colors.white,
       ),
       scaffoldBackgroundColor: backgroundColor,
       cardTheme: CardThemeData(
@@ -40,11 +38,11 @@ class AppTheme {
         fillColor: surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: primaryColor.withOpacity(0.3)),
+          borderSide: BorderSide(color: primaryColor.withValues(alpha: 0.3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+          borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

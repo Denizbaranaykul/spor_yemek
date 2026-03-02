@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
@@ -26,7 +27,7 @@ class AIService {
   void _rotateKey(List<String> keys) {
     if (keys.isNotEmpty) {
       _currentKeyIndex = (_currentKeyIndex + 1) % keys.length;
-      print('🔄 API Anahtarı değiştirildi. Yeni endeks: $_currentKeyIndex');
+      debugPrint(' API Anahtarı değiştirildi. Yeni endeks: $_currentKeyIndex');
     }
   }
 
@@ -35,7 +36,7 @@ class AIService {
   Future<Map<String, dynamic>> analyzeFood(String foodDescription) async {
     final keys = _getApiKeys();
     if (keys.isEmpty) {
-      throw Exception('GEMINI_API_KEY bulunamadı. Lütfen .env dosyanıza ekleyin.');
+      throw Exception('GEMINI_API_KEY bulunamadı.');
     }
 
     int attempts = 0;
@@ -54,8 +55,10 @@ class AIService {
 
         final prompt = '''
 Lütfen kullanıcının yediği şu yemeği analiz et: "$foodDescription"
-
-Sadece ve sadece aşağıdaki formattaki bir JSON döndür. Başka hiçbir metin veya açıklama ekleme:
+1. Alınan yiyeceklerin gramajını hesapla.
+2. Gramaja göre Alınan yiyeceklerin kalorilerini hesapla.
+3. Gramaja göre Alınan yiyeceklerin protein, karbonhidrat ve yağ miktarını hesapla.
+4. Sadece ve sadece aşağıdaki formattaki bir JSON döndür. Başka hiçbir metin veya açıklama ekleme:
 {
   "calories": Toplam kalori miktarı (sayı),
   "macros": {
@@ -79,15 +82,15 @@ Birimleri yazma, sadece sayı değerlerini gir. Eğer tam emin değilsen mantık
         String cleanedText = responseText.replaceAll('```json', '').replaceAll('```', '').trim();
 
         final Map<String, dynamic> decodedData = jsonDecode(cleanedText);
-        print('📊 AI Analiz Sonucu: $decodedData');
+        debugPrint('📊 AI Analiz Sonucu: $decodedData');
         return decodedData;
       } on GenerativeAIException catch (e) {
-        print('⚠️ GenerativeAIException Hatası (analyzeFood): $e');
+        debugPrint('⚠️ GenerativeAIException Hatası (analyzeFood): $e');
         // Özellikle ResourceExhausted (429) yakalamak için veya genel bir kısıtlama hatasında rotasyon yap.
         if (e.toString().contains('429') || e.toString().toLowerCase().contains('quota') || e.toString().toLowerCase().contains('exhausted')) {
           attempts++;
           if (attempts < maxAttempts) {
-             print('⏳ 429 / Quota Hatası alındı. Başka bir API anahtarına geçiliyor...');
+             debugPrint('⏳ 429 / Quota Hatası alındı. Başka bir API anahtarına geçiliyor...');
             _rotateKey(keys);
           } else {
              throw Exception('Tüm API anahtarlarının limiti doldu (429). Lütfen daha sonra tekrar deneyin.');
@@ -97,7 +100,7 @@ Birimleri yazma, sadece sayı değerlerini gir. Eğer tam emin değilsen mantık
            rethrow;
         }
       } catch (e) {
-        print('⚠️ AI Service Hatası (analyzeFood): $e');
+        debugPrint('⚠️ AI Service Hatası (analyzeFood): $e');
         rethrow;
       }
     }
@@ -145,11 +148,11 @@ Bu verileri göz önünde bulundurarak, samimi, kısa, motive edici ve yapıcı 
         
         return 'Harika ilerliyorsun, hedeflerine odaklanmaya devam et!';
       } on GenerativeAIException catch (e) {
-        print('⚠️ GenerativeAIException (generateRecommendation): $e');
+        debugPrint('⚠️ GenerativeAIException (generateRecommendation): $e');
         if (e.toString().contains('429') || e.toString().toLowerCase().contains('quota') || e.toString().toLowerCase().contains('exhausted')) {
           attempts++;
           if (attempts < maxAttempts) {
-             print('⏳ 429 / Quota Hatası alındı. Başka bir API anahtarına geçiliyor...');
+             debugPrint('⏳ 429 / Quota Hatası alındı. Başka bir API anahtarına geçiliyor...');
             _rotateKey(keys);
           } else {
              return 'Sistem şu an yoğun (Tüm API limitleri dolu), daha sonra tekrar deneyin.';
@@ -158,7 +161,7 @@ Bu verileri göz önünde bulundurarak, samimi, kısa, motive edici ve yapıcı 
            return 'Verileriniz değerlendirilemedi, lütfen tekrar deneyin.';
         }
       } catch (e) {
-        print('⚠️ Tavsiye fonksiyonu genel hatası: $e');
+        debugPrint('⚠️ Tavsiye fonksiyonu genel hatası: $e');
         return 'Verileriniz değerlendiriliyor, motivasyonunu koru!';
       }
     }

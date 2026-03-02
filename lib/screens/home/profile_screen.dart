@@ -125,6 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (confirm == true) {
+      if (!mounted) return;
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.signOut();
     }
@@ -133,11 +134,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil'),
-      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.only(top: 36.0, left: 16.0, right: 16.0, bottom: 16.0),
         child: Consumer<AuthProvider>(
           builder: (context, authProvider, _) {
             final user = authProvider.currentUser;

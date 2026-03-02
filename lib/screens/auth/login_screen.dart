@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
 import 'register_screen.dart';
@@ -16,6 +17,28 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString('saved_email');
+    final savedPassword = prefs.getString('saved_password');
+    if (savedEmail != null && savedPassword != null) {
+      if (mounted) {
+        setState(() {
+          _emailController.text = savedEmail;
+          _passwordController.text = savedPassword;
+          _rememberMe = true;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -35,6 +58,15 @@ class _LoginScreenState extends State<LoginScreen> {
         _emailController.text.trim(),
         _passwordController.text,
       );
+
+      final prefs = await SharedPreferences.getInstance();
+      if (_rememberMe) {
+        await prefs.setString('saved_email', _emailController.text.trim());
+        await prefs.setString('saved_password', _passwordController.text);
+      } else {
+        await prefs.remove('saved_email');
+        await prefs.remove('saved_password');
+      }
     } catch (e) {
       scaffoldMessenger.showSnackBar(
         SnackBar(
@@ -59,13 +91,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Icon(
-                    Icons.restaurant_menu,
+                    Icons.fitness_center,
                     size: 80,
                     color: AppTheme.primaryColor,
                   ),
                   const SizedBox(height: 32),
                   const Text(
-                    'Spor Yemek',
+                    'Glow Up',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -129,7 +161,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _rememberMe,
+                        onChanged: (value) {
+                          setState(() {
+                            _rememberMe = value ?? false;
+                          });
+                        },
+                      ),
+                      const Text('Beni Hatırla'),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   Consumer<AuthProvider>(
                     builder: (context, authProvider, _) {
                       return ElevatedButton(

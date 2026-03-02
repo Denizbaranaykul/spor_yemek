@@ -4,6 +4,9 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../models/daily_goals.dart';
 import '../../models/meal.dart';
 import '../../models/workout.dart';
+import '../../models/water_log.dart';
+import '../../models/step_log.dart';
+import '../../models/cardio_log.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -18,6 +21,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   final _firestoreService = FirestoreService();
   DailyGoals _goals = DailyGoals();
   bool _goalsLoaded = false;
+  DateTime _selectedEndDate = DateTime.now();
 
   @override
   void initState() {
@@ -35,6 +39,20 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     }
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedEndDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedEndDate) {
+      setState(() {
+        _selectedEndDate = picked;
+      });
+    }
+  }
+
   Future<void> _showEditGoalsDialog() async {
     final calController = TextEditingController(
       text: _goals.calories.truncateToDouble() == _goals.calories
@@ -44,6 +62,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     final proController = TextEditingController(text: _goals.protein.toStringAsFixed(0));
     final carbController = TextEditingController(text: _goals.carbs.toStringAsFixed(0));
     final fatController = TextEditingController(text: _goals.fat.toStringAsFixed(0));
+    final waterController = TextEditingController(text: _goals.water.toStringAsFixed(0));
 
     final result = await showDialog<bool>(
       context: context,
@@ -88,6 +107,15 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   border: OutlineInputBorder(),
                 ),
               ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: waterController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Su (ml)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
             ],
           ),
         ),
@@ -111,6 +139,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         protein: double.tryParse(proController.text.replaceAll(',', '.')) ?? _goals.protein,
         carbs: double.tryParse(carbController.text.replaceAll(',', '.')) ?? _goals.carbs,
         fat: double.tryParse(fatController.text.replaceAll(',', '.')) ?? _goals.fat,
+        water: double.tryParse(waterController.text.replaceAll(',', '.')) ?? _goals.water,
       );
       await _firestoreService.saveDailyGoals(goals);
       if (mounted) {
@@ -125,28 +154,38 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Analiz'),
-      ),
       body: StreamBuilder<List<Meal>>(
         stream: _firestoreService.getMeals(),
         builder: (context, mealsSnapshot) {
           return StreamBuilder<List<Workout>>(
             stream: _firestoreService.getWorkouts(),
             builder: (context, workoutsSnapshot) {
-              if (!mealsSnapshot.hasData || !workoutsSnapshot.hasData || !_goalsLoaded) {
-                return const Center(child: CircularProgressIndicator());
-              }
+              return StreamBuilder<List<WaterLog>>(
+                stream: _firestoreService.getWaterLogs(),
+                builder: (context, waterSnapshot) {
+                  return StreamBuilder<List<StepLog>>(
+                    stream: _firestoreService.getStepLogs(),
+                    builder: (context, stepSnapshot) {
+                      return StreamBuilder<List<CardioLog>>(
+                        stream: _firestoreService.getCardioLogs(),
+                        builder: (context, cardioSnapshot) {
+                          if (!mealsSnapshot.hasData || !workoutsSnapshot.hasData || !waterSnapshot.hasData || !stepSnapshot.hasData || !cardioSnapshot.hasData || !_goalsLoaded) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
 
-              final meals = mealsSnapshot.data ?? [];
-              final workouts = workoutsSnapshot.data ?? [];
-              final today = DateTime.now();
-              final todayStart = DateTime(today.year, today.month, today.day);
-              final todayEnd = todayStart.add(const Duration(days: 1));
+                          final meals = mealsSnapshot.data ?? [];
+                          final workouts = workoutsSnapshot.data ?? [];
+                          final waterLogs = waterSnapshot.data ?? [];
+                          final stepLogs = stepSnapshot.data ?? [];
+                          final cardioLogs = cardioSnapshot.data ?? [];
+                          
+                          final today = DateTime.now();
+                          final todayStart = DateTime(today.year, today.month, today.day);
+                          final todayEnd = todayStart.add(const Duration(days: 1));
 
-              // Bugünkü tüketim
+
               final todayMeals = meals.where((m) =>
-                  m.timestamp.isAfter(todayStart) && m.timestamp.isBefore(todayEnd)).toList();
+                  m.timestamp.compareTo(todayStart) >= 0 && m.timestamp.compareTo(todayEnd) < 0).toList();
               final consumedCal = todayMeals.fold<double>(0, (s, m) => s + m.calories);
               final consumedPro = todayMeals.fold<double>(
                   0, (s, m) => s + (m.macros['protein']?.toDouble() ?? 0));
@@ -154,6 +193,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   0, (s, m) => s + (m.macros['carbs']?.toDouble() ?? 0));
               final consumedFat = todayMeals.fold<double>(
                   0, (s, m) => s + (m.macros['fat']?.toDouble() ?? 0));
+
+              final todayWaterLogs = waterLogs.where((l) =>
+                  l.timestamp.compareTo(todayStart) >= 0 && l.timestamp.compareTo(todayEnd) < 0).toList();
+              final consumedWater = todayWaterLogs.fold<double>(0, (s, l) => s + l.amount);
 
               final uniqueExercises = workouts
                   .map((w) => w.exerciseName)
@@ -163,7 +206,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 ..sort();
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.only(top: 36.0, left: 16.0, right: 16.0, bottom: 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -225,17 +268,239 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                               target: _goals.fat,
                               consumed: consumedFat,
                             ),
+                            const Divider(),
+                            _RemainingRow(
+                              label: 'Su',
+                              unit: 'ml',
+                              target: _goals.water,
+                              consumed: consumedWater,
+                            ),
                           ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // History Title & Date Picker Action
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Geçmiş 5 Gün Grafiği',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.date_range),
+                          onPressed: () => _selectDate(context),
+                          tooltip: 'Tarih Seç',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Kalori Grafiği Kartı
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: _buildHistoryBarChart<Meal>(
+                          title: 'Alınan Kalori (kcal)',
+                          data: meals,
+                          dateExtractor: (m) => m.timestamp,
+                          valueExtractor: (m) => m.calories,
+                          color: AppTheme.primaryColor,
+                          endDate: _selectedEndDate,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Su Tüketimi Grafiği Kartı
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: _buildHistoryBarChart<WaterLog>(
+                          title: 'Su Tüketimi (ml)',
+                          data: waterLogs,
+                          dateExtractor: (w) => w.timestamp,
+                          valueExtractor: (w) => w.amount.toDouble(),
+                          color: AppTheme.secondaryColor,
+                          endDate: _selectedEndDate,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Kardiyo Grafiği Kartı
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: _buildHistoryBarChart<CardioLog>(
+                          title: 'Kardiyo (Dk)',
+                          data: cardioLogs,
+                          dateExtractor: (c) => c.timestamp,
+                          valueExtractor: (c) => c.minutes.toDouble(),
+                          color: const Color(0xFFEF9A9A),
+                          endDate: _selectedEndDate,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Adım Sayısı Grafiği Kartı
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: _buildHistoryBarChart<StepLog>(
+                          title: 'Adım Sayısı',
+                          data: stepLogs,
+                          dateExtractor: (s) => s.timestamp,
+                          valueExtractor: (s) => s.steps.toDouble(),
+                          color: Colors.amberAccent,
+                          endDate: _selectedEndDate,
                         ),
                       ),
                     ),
                   ],
                 ),
               );
+                        },
+                      );
+                    },
+                  );
+                },
+              );
             },
           );
         },
       ),
+    );
+  }
+
+  Widget _buildHistoryBarChart<T>({
+    required String title,
+    required List<T> data,
+    required DateTime Function(T) dateExtractor,
+    required double Function(T) valueExtractor,
+    required Color color,
+    required DateTime endDate,
+  }) {
+    final Map<String, double> groupedData = {};
+    final List<String> dayKeys = [];
+
+    // Geçmiş 5 gün
+    final endDayStart = DateTime(endDate.year, endDate.month, endDate.day);
+    for (int i = 4; i >= 0; i--) {
+      final day = endDayStart.subtract(Duration(days: i));
+      final dateKey = DateFormat('dd/MM').format(day);
+      dayKeys.add(dateKey);
+      groupedData[dateKey] = 0.0;
+    }
+
+    final startOfRange = endDayStart.subtract(const Duration(days: 4));
+    final endOfRange = endDayStart.add(const Duration(days: 1));
+
+    for (final item in data) {
+      final itemDate = dateExtractor(item);
+      if (itemDate.compareTo(startOfRange) >= 0 && itemDate.compareTo(endOfRange) < 0) {
+        final dateKey = DateFormat('dd/MM').format(itemDate);
+        if (groupedData.containsKey(dateKey)) {
+          groupedData[dateKey] = (groupedData[dateKey] ?? 0.0) + valueExtractor(item);
+        }
+      }
+    }
+
+    final entries = dayKeys.map((key) => MapEntry(key, groupedData[key]!)).toList();
+
+    double maxY = entries.map((e) => e.value).reduce((a, b) => a > b ? a : b);
+    if (maxY == 0) maxY = 10;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 200,
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              maxY: maxY * 1.2,
+              barTouchData: BarTouchData(
+                enabled: true,
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipColor: (group) => AppTheme.surfaceColor,
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    return BarTooltipItem(
+                      '${entries[group.x.toInt()].key}\n${rod.toY.toInt()}',
+                      const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    );
+                  },
+                ),
+              ),
+              titlesData: FlTitlesData(
+                show: true,
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (value, meta) {
+                      final index = value.toInt();
+                      if (index >= 0 && index < entries.length) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            entries[index].key,
+                            style: const TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    getTitlesWidget: (value, meta) {
+                      if (value == 0 || value == maxY * 1.2) return const SizedBox.shrink();
+                      return Text(
+                        value >= 1000 ? '${(value / 1000).toStringAsFixed(1)}k' : value.toInt().toString(),
+                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                      );
+                    },
+                  ),
+                ),
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              ),
+              borderData: FlBorderData(show: false),
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                horizontalInterval: maxY > 0 ? maxY / 3 : 1,
+                getDrawingHorizontalLine: (value) => FlLine(
+                  color: Colors.grey.withAlpha(50),
+                  strokeWidth: 1,
+                ),
+              ),
+              barGroups: entries.asMap().entries.map((entry) {
+                return BarChartGroupData(
+                  x: entry.key,
+                  barRods: [
+                    BarChartRodData(
+                      toY: entry.value.value,
+                      color: color,
+                      width: 16,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -311,7 +576,7 @@ class _ExerciseProgressChartState extends State<_ExerciseProgressChart> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _selectedExercise,
+              initialValue: _selectedExercise,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -411,7 +676,7 @@ class _ExerciseProgressChartState extends State<_ExerciseProgressChart> {
             dotData: const FlDotData(show: true),
             belowBarData: BarAreaData(
               show: true,
-              color: AppTheme.primaryColor.withOpacity(0.2),
+              color: AppTheme.primaryColor.withValues(alpha: 0.2),
             ),
           ),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/meal.dart';
+import '../../models/water_log.dart';
 import '../../services/firestore_service.dart';
 import '../../services/ai_service.dart';
 import '../../theme/app_theme.dart';
@@ -29,6 +30,7 @@ class _FoodScreenState extends State<FoodScreen> {
   final _proteinController = TextEditingController();
   final _carbsController = TextEditingController();
   final _fatController = TextEditingController();
+  final _waterController = TextEditingController();
   final _firestoreService = FirestoreService();
   final _aiService = AIService();
   bool _isAnalyzing = false;
@@ -43,7 +45,53 @@ class _FoodScreenState extends State<FoodScreen> {
     _proteinController.dispose();
     _carbsController.dispose();
     _fatController.dispose();
+    _waterController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveWater() async {
+    if (_waterController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Lütfen su miktarını girin'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final amount = int.tryParse(_waterController.text.trim()) ?? 0;
+      if (amount <= 0) {
+        throw Exception('Geçerli bir miktar girin');
+      }
+
+      final waterLog = WaterLog(
+        amount: amount,
+        timestamp: DateTime.now(),
+      );
+
+      await _firestoreService.addWaterLog(waterLog);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Su tüketimi kaydedildi!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _waterController.clear();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Kayıt hatası: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _analyzeFood() async {
@@ -203,63 +251,22 @@ class _FoodScreenState extends State<FoodScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Yemek'),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: analys_result,
+          children: [SizedBox(height: 40), ...analysResult],
         ),
       ),
     );
   }
 
-  List<Widget> get analys_result {
+  List<Widget> get analysResult {
     return [
-          Center(
-            child: SegmentedButton<bool>(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                  (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.selected)) {
-                      return AppTheme.primaryColor;
-                    }
-                    return Colors.transparent;
-                  },
-                ),
-                foregroundColor: MaterialStateProperty.resolveWith<Color>(
-                  (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.selected)) {
-                      return Colors.black;
-                    }
-                    return AppTheme.primaryColor;
-                  },
-                ),
-              ),
-              segments: const [
-                ButtonSegment<bool>(
-                  value: true,
-                  label: Text('Yapay Zeka'),
-                  icon: Icon(Icons.auto_awesome),
-                ),
-                ButtonSegment<bool>(
-                  value: false,
-                  label: Text('Manuel'),
-                  icon: Icon(Icons.edit),
-                ),
-              ],
-              selected: {_isAiMode},
-              onSelectionChanged: (newSelection) {
-                setState(() {
-                  _isAiMode = newSelection.first;
-                });
-              },
-            ),
-          ),
+          if (_isAiMode) analysCard() else manualEntryCard(),
           const SizedBox(height: 16),
-          if (_isAiMode) analys_card() else manual_entry_card(),
+
+          _buildWaterCard(),
           if (_isAiMode && _analysisResult != null) ...[
             const SizedBox(height: 16),
             Card(
@@ -299,10 +306,11 @@ class _FoodScreenState extends State<FoodScreen> {
                     ElevatedButton(
                       onPressed: _saveMeal,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
+                        backgroundColor: const Color(0xFF00C853),
+                        foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 48),
                       ),
-                      child: const Text('Kaydet'),
+                      child: const Text('Kaydet', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -367,19 +375,126 @@ class _FoodScreenState extends State<FoodScreen> {
         ];
   }
 
-  Card manual_entry_card() {
+  SegmentedButton<bool> manual_or_ai() {
+    return SegmentedButton<bool>(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return const Color.fromARGB(255, 205, 182, 8);
+                  }
+                  return Colors.transparent;
+                },
+              ),
+              foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                (Set<WidgetState> states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return Colors.black;
+                  }
+                  return const Color.fromARGB(255, 195, 198, 22);
+                },
+              ),
+            ),
+            segments: const [
+              ButtonSegment<bool>(
+                value: true,
+                label: Text('Otomatik'),
+                icon: Icon(Icons.auto_awesome),
+              ),
+              ButtonSegment<bool>(
+                value: false,
+                label: Text('Manuel'),
+                icon: Icon(Icons.edit),
+              ),
+            ],
+            selected: {_isAiMode},
+            onSelectionChanged: (newSelection) {
+              setState(() {
+                _isAiMode = newSelection.first;
+              });
+            },
+          );
+  }
+
+  Card _buildWaterCard() {
     return Card(
+      color: AppTheme.secondaryColor.withOpacity(0.15),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Manuel Olarak Ekle',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                const Icon(Icons.water_drop, color: AppTheme.secondaryColor), 
+                const SizedBox(width: 8),
+                const Text(
+                  'Su Tüketimi',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _waterController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Miktar (ml)',
+                      border: OutlineInputBorder(),
+                      suffixText: 'ml',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: _saveWater,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.secondaryColor,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  ),
+                  child: const Text('Ekle', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Card manualEntryCard() {
+    return Card(
+      color: Colors.amber.withOpacity(0.15),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.amber.withOpacity(0.3), width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(child: manual_or_ai()),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                const Icon(Icons.edit_note, color: Colors.amberAccent),
+                const SizedBox(width: 8),
+                const Text(
+                  'Manuel Olarak Ekle',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             TextField(
@@ -445,10 +560,11 @@ class _FoodScreenState extends State<FoodScreen> {
           ElevatedButton(
             onPressed: _saveManualMeal,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black,
               minimumSize: const Size(double.infinity, 48),
             ),
-            child: const Text('Kaydet'),
+            child: const Text('Kaydet', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
         ),
@@ -456,57 +572,61 @@ class _FoodScreenState extends State<FoodScreen> {
     );
   }
 
-  Card analys_card() {
+  Card analysCard() {
     return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Yediğiniz yemeği açıklayın',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+      color: Colors.amber.withOpacity(0.15),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(child: manual_or_ai()),
+            const SizedBox(height: 24),
+            Row(
+              children: [                  
+                const Icon(Icons.restaurant_menu, color: Colors.amberAccent),
+                const SizedBox(width: 8),
+                const Text(
+                  'Yediğiniz yemeği açıklayın',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Örn: "2 dilim tam buğday ekmeği ve 3 yumurta"',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _foodController,
-                    decoration: const InputDecoration(
-                      hintText: 'Yemek açıklaması...',
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: _isAnalyzing ? null : _analyzeFood,
-                    icon: _isAnalyzing
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.black),
-                            ),
-                          )
-                        : const Icon(Icons.auto_awesome),
-                    label: Text(_isAnalyzing ? 'Analiz ediliyor...' : 'AI ile Analiz Et'),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
+            const SizedBox(height: 16),
+            TextField(
+              controller: _foodController,
+              decoration: const InputDecoration(
+                hintText: 'Yemek açıklaması...',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                foregroundColor: Colors.black,
+              ),
+              onPressed: _isAnalyzing ? null : _analyzeFood,
+              icon: _isAnalyzing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                      ),
+                    )
+                  : const Icon(Icons.auto_awesome),
+              label: Text(_isAnalyzing ? 'Analiz ediliyor...' : 'Otomatik Analiz Et', style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildInfoRow(String label, String value) {
