@@ -30,6 +30,13 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
+        selectedItemColor: _currentIndex == 0
+            ? Colors.amber
+            : _currentIndex == 1
+                ? Colors.cyan // Turquoise
+                : _currentIndex == 2
+                    ? Colors.red
+                    : Colors.green,
         onTap: (index) {
           setState(() {
             _currentIndex = index;

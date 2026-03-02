@@ -339,13 +339,13 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                       children: [
                         if (todayTotalCardio > 0) ...[
                           Card(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                            color: const Color(0xFF4A0E17).withOpacity(0.6),
                             child: ListTile(
-                              leading: const Icon(Icons.directions_run, color: AppTheme.primaryColor),
-                              title: const Text('Bugün Toplam Kardiyo'),
+                              leading: const Icon(Icons.directions_run, color: Color(0xFFEF9A9A)),
+                              title: const Text('Bugün Toplam Kardiyo', style: TextStyle(color: Colors.white)),
                               trailing: Text(
                                 '$todayTotalCardio dk',
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFEF9A9A)),
                               ),
                             ),
                           ),

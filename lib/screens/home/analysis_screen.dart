@@ -308,7 +308,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                           data: meals,
                           dateExtractor: (m) => m.timestamp,
                           valueExtractor: (m) => m.calories,
-                          color: AppTheme.primaryColor,
+                          color: Colors.amber,
                           endDate: _selectedEndDate,
                         ),
                       ),

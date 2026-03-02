@@ -264,9 +264,6 @@ class _FoodScreenState extends State<FoodScreen> {
   List<Widget> get analysResult {
     return [
           if (_isAiMode) analysCard() else manualEntryCard(),
-          const SizedBox(height: 16),
-
-          _buildWaterCard(),
           if (_isAiMode && _analysisResult != null) ...[
             const SizedBox(height: 16),
             Card(
@@ -317,6 +314,9 @@ class _FoodScreenState extends State<FoodScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 16),
+
+          _buildWaterCard(),
           const SizedBox(height: 16),
           StreamBuilder<List<Meal>>(
             stream: _firestoreService.getMeals(),
