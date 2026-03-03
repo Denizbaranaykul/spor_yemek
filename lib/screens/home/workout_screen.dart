@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/workout.dart';
 import '../../models/cardio_log.dart';
 import '../../models/step_log.dart';
+import '../../models/calisthenics_log.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -18,6 +19,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   final _weightController = TextEditingController();
   final _cardioController = TextEditingController();
   final _stepsController = TextEditingController();
+  final _calisthenicsExerciseController = TextEditingController();
+  final _calisthenicsRepsController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   String? _selectedExercise;
 
@@ -45,6 +48,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     _weightController.dispose();
     _cardioController.dispose();
     _stepsController.dispose();
+    _calisthenicsExerciseController.dispose();
+    _calisthenicsRepsController.dispose();
     super.dispose();
   }
 
@@ -122,6 +127,31 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Adım sayısı kaydedildi!'), backgroundColor: Colors.green));
         _stepsController.clear();
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red));
+    }
+  }
+
+  Future<void> _saveCalisthenics() async {
+    if (_calisthenicsExerciseController.text.trim().isEmpty || _calisthenicsRepsController.text.trim().isEmpty) return;
+    
+    try {
+      final reps = int.parse(_calisthenicsRepsController.text);
+      if (reps <= 0) return;
+
+      final log = CalisthenicsLog(
+        exerciseName: _calisthenicsExerciseController.text.trim(),
+        reps: reps,
+        timestamp: DateTime.now(),
+      );
+
+      await _firestoreService.addCalisthenicsLog(log);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Calisthenics kaydedildi!'), backgroundColor: Colors.green));
+        _calisthenicsExerciseController.clear();
+        _calisthenicsRepsController.clear();
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red));
@@ -298,6 +328,57 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            Card(
+              color: const Color(0xFF2E7D32).withOpacity(0.6), // Green tone
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.accessibility_new, color: Color(0xFFA5D6A7)), // Light green
+                        const SizedBox(width: 8),
+                        const Text('Calisthenics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _calisthenicsExerciseController,
+                      decoration: const InputDecoration(
+                        labelText: 'Hareket Adı',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _calisthenicsRepsController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Tekrar Sayısı',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: _saveCalisthenics,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1B5E20), // Dark green
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Ekle', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             StreamBuilder<List<Workout>>(
               stream: _firestoreService.getWorkouts(),
               builder: (context, snapshot) {
@@ -334,50 +415,75 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                     final todayCardios = cardios.where((c) => c.timestamp.compareTo(todayStart) >= 0).toList();
                     final todayTotalCardio = todayCardios.fold<int>(0, (s, c) => s + c.minutes);
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (todayTotalCardio > 0) ...[
-                          Card(
-                            color: const Color(0xFF4A0E17).withOpacity(0.6),
-                            child: ListTile(
-                              leading: const Icon(Icons.directions_run, color: Color(0xFFEF9A9A)),
-                              title: const Text('Bugün Toplam Kardiyo', style: TextStyle(color: Colors.white)),
-                              trailing: Text(
-                                '$todayTotalCardio dk',
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFEF9A9A)),
+                    return StreamBuilder<List<CalisthenicsLog>>(
+                      stream: _firestoreService.getCalisthenicsLogs(),
+                      builder: (context, calisthenicsSnapshot) {
+                        final calisthenics = calisthenicsSnapshot.data ?? [];
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (todayTotalCardio > 0) ...[
+                              Card(
+                                color: const Color(0xFF4A0E17).withOpacity(0.6),
+                                child: ListTile(
+                                  leading: const Icon(Icons.directions_run, color: Color(0xFFEF9A9A)),
+                                  title: const Text('Bugün Toplam Kardiyo', style: TextStyle(color: Colors.white)),
+                                  trailing: Text(
+                                    '$todayTotalCardio dk',
+                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFEF9A9A)),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
-                        const Text(
-                          'Son Kayıtlar',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                    const SizedBox(height: 8),
-                    ...workouts.take(5).map((workout) => Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: const Icon(Icons.fitness_center),
-                            title: Text(workout.exerciseName),
-                            subtitle: Text(
-                              '${workout.timestamp.day}/${workout.timestamp.month}/${workout.timestamp.year}',
-                            ),
-                            trailing: Text(
-                              '${workout.weight} kg',
-                              style: const TextStyle(
+                              const SizedBox(height: 8),
+                            ],
+                            const Text(
+                              'Son Kayıtlar',
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryColor,
                               ),
                             ),
-                          ),
-                        )),
-                      ],
+                            const SizedBox(height: 8),
+                            ...workouts.take(5).map((workout) => Card(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  child: ListTile(
+                                    leading: const Icon(Icons.fitness_center),
+                                    title: Text(workout.exerciseName),
+                                    subtitle: Text(
+                                      '${workout.timestamp.day}/${workout.timestamp.month}/${workout.timestamp.year}',
+                                    ),
+                                    trailing: Text(
+                                      '${workout.weight} kg',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.primaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                )),
+                            ...calisthenics.take(5).map((calisthenic) => Card(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  child: ListTile(
+                                    leading: const Icon(Icons.accessibility_new, color: Colors.green),
+                                    title: Text(calisthenic.exerciseName),
+                                    subtitle: Text(
+                                      '${calisthenic.timestamp.day}/${calisthenic.timestamp.month}/${calisthenic.timestamp.year}',
+                                    ),
+                                    trailing: Text(
+                                      '${calisthenic.reps} tekrar',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                  ),
+                                )),
+                          ],
+                        );
+                      }
                     );
                   }
                 );

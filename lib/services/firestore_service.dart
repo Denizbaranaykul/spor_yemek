@@ -6,6 +6,8 @@ import '../models/workout.dart';
 import '../models/water_log.dart';
 import '../models/cardio_log.dart';
 import '../models/step_log.dart';
+import '../models/calisthenics_log.dart';
+import '../models/note_model.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -56,6 +58,18 @@ class FirestoreService {
     // Filter and sort in memory
     meals.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return meals;
+  }
+
+  Future<void> deleteMeal(String? mealId) async {
+    if (_userId == null) throw Exception('User not authenticated');
+    if (mealId == null || mealId.isEmpty) return;
+    
+    await _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('meals')
+        .doc(mealId)
+        .delete();
   }
 
   // Workout operations
@@ -178,6 +192,56 @@ class FirestoreService {
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => StepLog.fromMap(doc.id, doc.data()))
+            .toList());
+  }
+
+  // Calisthenics operations
+  Future<void> addCalisthenicsLog(CalisthenicsLog log) async {
+    if (_userId == null) throw Exception('User not authenticated');
+
+    await _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('calisthenics_logs')
+        .add(log.toMap());
+  }
+
+  Stream<List<CalisthenicsLog>> getCalisthenicsLogs() {
+    if (_userId == null) return Stream.value([]);
+
+    return _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('calisthenics_logs')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => CalisthenicsLog.fromMap(doc.id, doc.data()))
+            .toList());
+  }
+
+  // Notes operations
+  Future<void> addNote(NoteModel note) async {
+    if (_userId == null) throw Exception('User not authenticated');
+
+    await _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('notes')
+        .add(note.toMap());
+  }
+
+  Stream<List<NoteModel>> getNotes() {
+    if (_userId == null) return Stream.value([]);
+
+    return _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('notes')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => NoteModel.fromMap(doc.id, doc.data()))
             .toList());
   }
 

@@ -35,7 +35,44 @@ class _FoodScreenState extends State<FoodScreen> {
   final _aiService = AIService();
   bool _isAnalyzing = false;
   Map<String, dynamic>? _analysisResult;
+  bool _isLoading = false;
   bool _isAiMode = true;
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+
+  Future<void> _selectDateTime(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (pickedDate == null) return;
+
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (pickedTime == null) return;
+
+    if (pickedDate != _selectedDate || pickedTime != _selectedTime) {
+      setState(() {
+        _selectedDate = pickedDate;
+        _selectedTime = pickedTime;
+      });
+    }
+  }
+
+  DateTime _getTimestampForLog() {
+    return DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+      0, // Seconds
+    );
+  }
 
   @override
   void dispose() {
@@ -169,7 +206,7 @@ class _FoodScreenState extends State<FoodScreen> {
           'carbs': _numToDouble(_carbsController.text.replaceAll(',', '.')),
           'fat': _numToDouble(_fatController.text.replaceAll(',', '.')),
         },
-        timestamp: DateTime.now(),
+        timestamp: _getTimestampForLog(),
       );
 
       await _firestoreService.addMeal(meal);
@@ -219,7 +256,7 @@ class _FoodScreenState extends State<FoodScreen> {
         foodName: _foodController.text.trim(),
         calories: _numToDouble(_analysisResult!['calories']),
         macros: macros,
-        timestamp: DateTime.now(),
+        timestamp: _getTimestampForLog(),
       );
 
       await _firestoreService.addMeal(meal);
@@ -355,16 +392,31 @@ class _FoodScreenState extends State<FoodScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ...meals.take(5).map((meal) => Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          title: Text(meal.foodName),
-                          subtitle: Text(
-                            '${_formatNum(meal.calories)} kcal • P: ${_formatNum((meal.macros['protein'] as num?)?.toDouble() ?? 0)}g • K: ${_formatNum((meal.macros['carbs'] as num?)?.toDouble() ?? 0)}g • Y: ${_formatNum((meal.macros['fat'] as num?)?.toDouble() ?? 0)}g',
-                          ),
-                          trailing: Text(
-                            '${meal.timestamp.hour}:${meal.timestamp.minute.toString().padLeft(2, '0')}',
-                            style: const TextStyle(color: Colors.grey),
+                  ...meals.take(5).map((meal) => Dismissible(
+                        key: Key(meal.id ?? meal.timestamp.toString()),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                        onDismissed: (direction) {
+                          if (meal.id != null) {
+                            _firestoreService.deleteMeal(meal.id);
+                          }
+                        },
+                        child: Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            title: Text(meal.foodName),
+                            subtitle: Text(
+                              '${_formatNum(meal.calories)} kcal • P: ${_formatNum((meal.macros['protein'] as num?)?.toDouble() ?? 0)}g • K: ${_formatNum((meal.macros['carbs'] as num?)?.toDouble() ?? 0)}g • Y: ${_formatNum((meal.macros['fat'] as num?)?.toDouble() ?? 0)}g',
+                            ),
+                            trailing: Text(
+                              '${meal.timestamp.hour.toString().padLeft(2, '0')}:${meal.timestamp.minute.toString().padLeft(2, '0')}',
+                              style: const TextStyle(color: Colors.grey),
+                            ),
                           ),
                         ),
                       )),
@@ -483,6 +535,31 @@ class _FoodScreenState extends State<FoodScreen> {
           children: [
             Center(child: manual_or_ai()),
             const SizedBox(height: 24),
+            // Tarih ve Saat Seçimi (Ortak)
+            InkWell(
+              onTap: () => _selectDateTime(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(25),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.calendar_today, size: 16, color: Colors.amber),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tarih: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} ${_selectedTime.format(context)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.edit, size: 16, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             Row(
               children: [
                 const Icon(Icons.edit_note, color: Colors.amberAccent),
@@ -581,6 +658,31 @@ class _FoodScreenState extends State<FoodScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(child: manual_or_ai()),
+            const SizedBox(height: 16),
+            // Tarih ve Saat Seçimi (Ortak)
+            InkWell(
+              onTap: () => _selectDateTime(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(25),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.calendar_today, size: 16, color: Colors.amber),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tarih: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year} ${_selectedTime.format(context)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.edit, size: 16, color: Colors.grey),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 24),
             Row(
               children: [                  

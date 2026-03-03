@@ -1,0 +1,43 @@
+[2026-03-02T20:48:09.836Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[2026-03-02T20:48:09.841Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[2026-03-02T20:48:09.842Z] > authorizing via signed-in user (daykul75@gmail.com)
+[2026-03-02T20:48:09.842Z] [iam] checking project sporveyemek for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[2026-03-02T20:48:09.844Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:09.844Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:09.846Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek:testIamPermissions [none]
+[2026-03-02T20:48:09.846Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek:testIamPermissions  x-goog-user-project=sporveyemek
+[2026-03-02T20:48:09.846Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[2026-03-02T20:48:12.329Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek:testIamPermissions 200
+[2026-03-02T20:48:12.329Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[2026-03-02T20:48:12.330Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:12.330Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:12.330Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/sporveyemek/serviceAccounts/sporveyemek@appspot.gserviceaccount.com:testIamPermissions [none]
+[2026-03-02T20:48:12.330Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/sporveyemek/serviceAccounts/sporveyemek@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[2026-03-02T20:48:13.825Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/sporveyemek/serviceAccounts/sporveyemek@appspot.gserviceaccount.com:testIamPermissions 200
+[2026-03-02T20:48:13.826Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/sporveyemek/serviceAccounts/sporveyemek@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+
+=== Deploying to 'sporveyemek'...
+
+i  deploying functions 
+[2026-03-02T20:48:13.833Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:13.833Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:13.834Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek [none]
+[2026-03-02T20:48:14.121Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek 200
+[2026-03-02T20:48:14.122Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek {"projectNumber":"29538190952","projectId":"sporveyemek","lifecycleState":"ACTIVE","name":"sporveyemek","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-02-03T16:34:04.273418Z"}
+i  functions: preparing codebase default for deployment 
+i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[2026-03-02T20:48:14.126Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:14.126Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:14.127Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/sporveyemek/adminSdkConfig [none]
+[2026-03-02T20:48:14.857Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/sporveyemek/adminSdkConfig 200
+[2026-03-02T20:48:14.857Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/sporveyemek/adminSdkConfig {"projectId":"sporveyemek","databaseURL":"https://sporveyemek-default-rtdb.europe-west1.firebasedatabase.app","storageBucket":"sporveyemek.firebasestorage.app"}
+[2026-03-02T20:48:14.857Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:14.858Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:14.858Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/sporveyemek/configs [none]
+[2026-03-02T20:48:15.355Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/sporveyemek/configs 200
+[2026-03-02T20:48:15.356Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/sporveyemek/configs {}
+[2026-03-02T20:48:15.358Z] Validating nodejs source
+
+Error: Runtime Node.js 18 was decommissioned on 2025-10-30. To deploy you must first upgrade your runtime version.

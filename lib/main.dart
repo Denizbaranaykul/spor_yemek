@@ -11,6 +11,7 @@ import 'theme/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'firebase_options.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +32,12 @@ void main() async {
     }
   } catch (e) {
     debugPrint('Firebase initialization error: $e');
+  }
+
+  try {
+    await NotificationService().init();
+  } catch (e) {
+    debugPrint('Notification init error: $e');
   }
 
   runApp(const MyApp());

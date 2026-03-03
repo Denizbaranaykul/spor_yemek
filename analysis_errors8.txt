@@ -1,0 +1,21 @@
+Analyzing spor_yemek...                                         
+
+   info - The variable name 'manual_or_ai' isn't a lowerCamelCase identifier - lib\screens\home\food_screen.dart:420:25 - non_constant_identifier_names
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home\food_screen.dart:463:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home\food_screen.dart:516:27 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home\food_screen.dart:519:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home\food_screen.dart:619:27 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home\notes_screen.dart:114:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home\workout_screen.dart:170:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home\workout_screen.dart:265:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home\workout_screen.dart:332:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home\workout_screen.dart:428:64 - deprecated_member_use
+  error - The named parameter 'settings' is required, but there's no corresponding argument - lib\services\notification_service.dart:35:43 - missing_required_argument
+  error - Too many positional arguments: 0 expected, but 1 found - lib\services\notification_service.dart:35:54 - extra_positional_arguments_could_be_named
+  error - The named parameter 'id' is required, but there's no corresponding argument - lib\services\notification_service.dart:44:43 - missing_required_argument
+  error - The named parameter 'notificationDetails' is required, but there's no corresponding argument - lib\services\notification_service.dart:44:43 - missing_required_argument
+  error - The named parameter 'scheduledDate' is required, but there's no corresponding argument - lib\services\notification_service.dart:44:43 - missing_required_argument
+  error - Too many positional arguments: 0 expected, but 5 found - lib\services\notification_service.dart:45:7 - extra_positional_arguments_could_be_named
+  error - The named parameter 'uiLocalNotificationDateInterpretation' isn't defined - lib\services\notification_service.dart:60:7 - undefined_named_parameter
+  error - Undefined name 'UILocalNotificationDateInterpretation' - lib\services\notification_service.dart:61:11 - undefined_identifier
+

@@ -1,0 +1,23 @@
+Running Gradle task 'assembleDebug'...                          
+lib/services/notification_service.dart:70:45: Error: Too many positional arguments: 0 allowed, but 4 found.
+Try removing the extra positional arguments.
+        flutterLocalNotificationsPlugin.show(
+                                            ^
+Target kernel_snapshot_program failed: Exception
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileFlutterBuildDebug'.
+> Process 'command 'C:\Users\dayku\Downloads\flutter_windows_3.38.9-stable\flutter\bin\flutter.bat'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 7s
+Running Gradle task 'assembleDebug'...                              8.1s
+Gradle task assembleDebug failed with exit code 1

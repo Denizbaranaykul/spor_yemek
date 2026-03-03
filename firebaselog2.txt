@@ -1,0 +1,122 @@
+[2026-03-02T20:48:49.642Z] Object "" in "firebase.json" has unknown property: {"additionalProperty":"flutter"}
+[2026-03-02T20:48:49.649Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[2026-03-02T20:48:49.649Z] > authorizing via signed-in user (daykul75@gmail.com)
+[2026-03-02T20:48:49.650Z] [iam] checking project sporveyemek for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[2026-03-02T20:48:49.652Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:49.653Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:49.654Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek:testIamPermissions [none]
+[2026-03-02T20:48:49.655Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek:testIamPermissions  x-goog-user-project=sporveyemek
+[2026-03-02T20:48:49.655Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[2026-03-02T20:48:53.183Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek:testIamPermissions 200
+[2026-03-02T20:48:53.183Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[2026-03-02T20:48:53.184Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:53.184Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:53.184Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/sporveyemek/serviceAccounts/sporveyemek@appspot.gserviceaccount.com:testIamPermissions [none]
+[2026-03-02T20:48:53.184Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/sporveyemek/serviceAccounts/sporveyemek@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[2026-03-02T20:48:54.606Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/sporveyemek/serviceAccounts/sporveyemek@appspot.gserviceaccount.com:testIamPermissions 200
+[2026-03-02T20:48:54.607Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/sporveyemek/serviceAccounts/sporveyemek@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+
+=== Deploying to 'sporveyemek'...
+
+i  deploying functions 
+[2026-03-02T20:48:54.612Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:54.612Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:54.612Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek [none]
+[2026-03-02T20:48:55.075Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek 200
+[2026-03-02T20:48:55.076Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek {"projectNumber":"29538190952","projectId":"sporveyemek","lifecycleState":"ACTIVE","name":"sporveyemek","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-02-03T16:34:04.273418Z"}
+i  functions: preparing codebase default for deployment 
+i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[2026-03-02T20:48:55.081Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:55.082Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:55.082Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/sporveyemek/adminSdkConfig [none]
+[2026-03-02T20:48:55.624Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/sporveyemek/adminSdkConfig 200
+[2026-03-02T20:48:55.624Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/sporveyemek/adminSdkConfig {"projectId":"sporveyemek","databaseURL":"https://sporveyemek-default-rtdb.europe-west1.firebasedatabase.app","storageBucket":"sporveyemek.firebasestorage.app"}
+[2026-03-02T20:48:55.624Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:55.624Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:48:55.625Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/sporveyemek/configs [none]
+[2026-03-02T20:48:56.116Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/sporveyemek/configs 200
+[2026-03-02T20:48:56.117Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/sporveyemek/configs {}
+[2026-03-02T20:48:56.118Z] Validating nodejs source
+!  functions: Runtime Node.js 20 will be deprecated on 2026-04-30 and will be decommissioned on 2026-10-30, after which you will not be able to deploy without upgrading. Consider upgrading now to avoid disruption. See https://cloud.google.com/functions/docs/runtime-support for full details on the lifecycle policy 
+!  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+!  functions: Please note that there will be breaking changes when you upgrade. 
+[2026-03-02T20:48:57.760Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for spor_yemek push notifications",
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^11.8.0",
+    "firebase-functions": "^4.3.1"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.1.0"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "private": true
+}
+[2026-03-02T20:48:57.761Z] Building nodejs source
+i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+i  functions: You are using a version of firebase-functions SDK (4.9.0) that does not have support for the newest Firebase Extensions features. Please update firebase-functions SDK to >=5.1.0 to use them correctly 
+[2026-03-02T20:48:57.762Z] Could not find functions.yaml. Must use http discovery
+[2026-03-02T20:48:57.774Z] Found firebase-functions binary at 'C:\codes\spor_yemek\functions\node_modules\.bin\firebase-functions'
+Serving at port 8759
+
+[2026-03-02T20:48:58.529Z] Got response from /__/functions.yaml {"endpoints":{"sendNoteReminders":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"scheduleTrigger":{"schedule":"every 1 minutes","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetryDuration":null,"maxBackoffDuration":null,"minBackoffDuration":null},"timeZone":null},"labels":{},"entryPoint":"sendNoteReminders"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}]}
+i  functions: preparing functions directory for uploading... 
+i  functions: packaged C:\codes\spor_yemek\functions (74.1 KB) for uploading 
+[2026-03-02T20:49:02.627Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:02.627Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:02.627Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v1/projects/sporveyemek/locations/-/functions [none]
+[2026-03-02T20:49:05.262Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v1/projects/sporveyemek/locations/-/functions 200
+[2026-03-02T20:49:05.263Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v1/projects/sporveyemek/locations/-/functions {}
+[2026-03-02T20:49:05.263Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:05.263Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:05.264Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/sporveyemek/locations/-/functions filter=environment%3D%22GEN_2%22
+[2026-03-02T20:49:06.381Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/sporveyemek/locations/-/functions 200
+[2026-03-02T20:49:06.381Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/sporveyemek/locations/-/functions {"functions":[{"name":"projects/sporveyemek/locations/us-central1/functions/analyze_food_ai","buildConfig":{"build":"projects/29538190952/locations/us-central1/builds/7a435002-35f9-42db-b44b-0d51259ce5e6","runtime":"python311","entryPoint":"analyze_food_ai","source":{"storageSource":{"bucket":"gcf-v2-sources-29538190952-us-central1","object":"analyze_food_ai/function-source.zip","generation":"1771425290781380"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"dockerRepository":"projects/sporveyemek/locations/us-central1/repositories/gcf-artifacts","sourceProvenance":{"resolvedStorageSource":{"bucket":"gcf-v2-sources-29538190952-us-central1","object":"analyze_food_ai/function-source.zip","generation":"1771425290781380"}},"dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/sporveyemek/serviceAccounts/29538190952-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/sporveyemek/locations/us-central1/services/analyze-food-ai","timeoutSeconds":60,"environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"sporveyemek\",\"storageBucket\":\"sporveyemek.firebasestorage.app\"}","GCLOUD_PROJECT":"sporveyemek","EVENTARC_CLOUD_EVENT_SOURCE":"projects/sporveyemek/locations/us-central1/services/analyze_food_ai","FUNCTION_TARGET":"analyze_food_ai","LOG_EXECUTION_ID":"true","FUNCTION_SIGNATURE_TYPE":"http"},"maxInstanceCount":20,"ingressSettings":"ALLOW_ALL","uri":"https://analyze-food-ai-l7ggn6ehqq-uc.a.run.app","serviceAccountEmail":"29538190952-compute@developer.gserviceaccount.com","availableMemory":"256Mi","allTrafficOnLatestRevision":true,"revision":"analyze-food-ai-00002-rew","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"state":"ACTIVE","updateTime":"2026-02-18T14:35:00.011586814Z","labels":{"firebase-functions-hash":"eb183662cfcecc1ee0b14a91fc704093a548ee58","deployment-callable":"true","deployment-tool":"cli-firebase"},"environment":"GEN_2","url":"https://us-central1-sporveyemek.cloudfunctions.net/analyze_food_ai","createTime":"2026-02-18T14:19:37.802688411Z","satisfiesPzi":true},{"name":"projects/sporveyemek/locations/us-central1/functions/generate_recommendation_ai","buildConfig":{"build":"projects/29538190952/locations/us-central1/builds/7a435002-35f9-42db-b44b-0d51259ce5e6","runtime":"python311","entryPoint":"generate_recommendation_ai","source":{"storageSource":{"bucket":"gcf-v2-sources-29538190952-us-central1","object":"generate_recommendation_ai/function-source.zip","generation":"1771425215223413"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"dockerRepository":"projects/sporveyemek/locations/us-central1/repositories/gcf-artifacts","sourceProvenance":{"resolvedStorageSource":{"bucket":"gcf-v2-sources-29538190952-us-central1","object":"generate_recommendation_ai/function-source.zip","generation":"1771425215223413"}},"dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/sporveyemek/serviceAccounts/29538190952-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/sporveyemek/locations/us-central1/services/generate-recommendation-ai","timeoutSeconds":60,"environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"sporveyemek\",\"storageBucket\":\"sporveyemek.firebasestorage.app\"}","GCLOUD_PROJECT":"sporveyemek","EVENTARC_CLOUD_EVENT_SOURCE":"projects/sporveyemek/locations/us-central1/services/generate_recommendation_ai","FUNCTION_TARGET":"generate_recommendation_ai","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","uri":"https://generate-recommendation-ai-l7ggn6ehqq-uc.a.run.app","serviceAccountEmail":"29538190952-compute@developer.gserviceaccount.com","availableMemory":"256Mi","allTrafficOnLatestRevision":true,"revision":"generate-recommendation-ai-00001-zam","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"state":"ACTIVE","updateTime":"2026-02-18T14:34:56.526158621Z","labels":{"deployment-callable":"true","deployment-tool":"cli-firebase","firebase-functions-hash":"eb183662cfcecc1ee0b14a91fc704093a548ee58"},"environment":"GEN_2","url":"https://us-central1-sporveyemek.cloudfunctions.net/generate_recommendation_ai","createTime":"2026-02-18T14:33:35.545581287Z","satisfiesPzi":true}]}
+i  functions: ensuring required API cloudscheduler.googleapis.com is enabled... 
+[2026-03-02T20:49:06.386Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:06.386Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:06.387Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/29538190952/services/cloudscheduler.googleapis.com [none]
+[2026-03-02T20:49:06.387Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/29538190952/services/cloudscheduler.googleapis.com  x-goog-user-project=29538190952
+[2026-03-02T20:49:08.067Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/29538190952/services/cloudscheduler.googleapis.com 200
+[2026-03-02T20:49:08.067Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/29538190952/services/cloudscheduler.googleapis.com [omitted]
+!  functions: missing required API cloudscheduler.googleapis.com. Enabling now... 
+[2026-03-02T20:49:08.068Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:08.068Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:08.068Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/29538190952/services/cloudscheduler.googleapis.com:enable [none]
+[2026-03-02T20:49:08.068Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/29538190952/services/cloudscheduler.googleapis.com:enable  x-goog-user-project=29538190952
+[2026-03-02T20:49:09.347Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/29538190952/services/cloudscheduler.googleapis.com:enable 200
+[2026-03-02T20:49:09.347Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/29538190952/services/cloudscheduler.googleapis.com:enable [omitted]
+[2026-03-02T20:49:19.366Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:19.366Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:19.366Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek [none]
+[2026-03-02T20:49:20.982Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek 200
+[2026-03-02T20:49:20.982Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/sporveyemek {"projectNumber":"29538190952","projectId":"sporveyemek","lifecycleState":"ACTIVE","name":"sporveyemek","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-02-03T16:34:04.273418Z"}
+[2026-03-02T20:49:20.984Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:20.984Z] Checked if tokens are valid: true, expires at: 1772488048359
+[2026-03-02T20:49:20.984Z] >>> [apiv2][query] POST https://cloudfunctions.googleapis.com/v1/projects/sporveyemek/locations/us-central1/functions:generateUploadUrl [none]
+[2026-03-02T20:49:20.984Z] >>> [apiv2][body] POST https://cloudfunctions.googleapis.com/v1/projects/sporveyemek/locations/us-central1/functions:generateUploadUrl {}
+[2026-03-02T20:49:30.559Z] <<< [apiv2][status] POST https://cloudfunctions.googleapis.com/v1/projects/sporveyemek/locations/us-central1/functions:generateUploadUrl 200
+[2026-03-02T20:49:30.559Z] <<< [apiv2][body] POST https://cloudfunctions.googleapis.com/v1/projects/sporveyemek/locations/us-central1/functions:generateUploadUrl {"uploadUrl":"https://storage.googleapis.com/uploads-688843013826.us-central1.cloudfunctions.appspot.com/24db25c3-68f3-4b2c-abcd-8026ae81f5ab.zip?GoogleAccessId=service-29538190952@gcf-admin-robot.iam.gserviceaccount.com&Expires=1772486370&Signature=VVumU3HXY6d76E9jttx8f5zyPS4HGD2lzFFJXTSflB6fa7N4f5AHp4EE%2F%2BaDnCIe1WwJLUBlKovmgQk4Fd7wij0ggn5vm%2FH4n6yOZhWpHnfw69A%2FJlllamYe4dD4ChfXv3g%2Bs1W8w2YjpNS2ksIlVcK2kv1NF%2BSRJD4%2Fn%2Fjz5oaFrzQhIGRl4ifybwzUWOw5ujLZO2rW%2FD9i3E2aRZoPNBDyIBlVAsF4MB8K8uWI7ENBgwGig1%2FvDu9Ew7OlCF7cikoE%2BeDkNY7j159uMTDT6Rw1hmSZ0qPxeK3DJ1dn648ldA8sBHNEFXhrQ6KJh5I860wekdMOK1gCPAPMm7JKpA%3D%3D"}
+[2026-03-02T20:49:30.560Z] >>> [apiv2][query] PUT https://storage.googleapis.com/uploads-688843013826.us-central1.cloudfunctions.appspot.com/24db25c3-68f3-4b2c-abcd-8026ae81f5ab.zip GoogleAccessId=service-29538190952%40gcf-admin-robot.iam.gserviceaccount.com&Expires=1772486370&Signature=VVumU3HXY6d76E9jttx8f5zyPS4HGD2lzFFJXTSflB6fa7N4f5AHp4EE%2F%2BaDnCIe1WwJLUBlKovmgQk4Fd7wij0ggn5vm%2FH4n6yOZhWpHnfw69A%2FJlllamYe4dD4ChfXv3g%2Bs1W8w2YjpNS2ksIlVcK2kv1NF%2BSRJD4%2Fn%2Fjz5oaFrzQhIGRl4ifybwzUWOw5ujLZO2rW%2FD9i3E2aRZoPNBDyIBlVAsF4MB8K8uWI7ENBgwGig1%2FvDu9Ew7OlCF7cikoE%2BeDkNY7j159uMTDT6Rw1hmSZ0qPxeK3DJ1dn648ldA8sBHNEFXhrQ6KJh5I860wekdMOK1gCPAPMm7JKpA%3D%3D
+[2026-03-02T20:49:30.560Z] >>> [apiv2][body] PUT https://storage.googleapis.com/uploads-688843013826.us-central1.cloudfunctions.appspot.com/24db25c3-68f3-4b2c-abcd-8026ae81f5ab.zip [stream]
+[2026-03-02T20:49:32.103Z] <<< [apiv2][status] PUT https://storage.googleapis.com/uploads-688843013826.us-central1.cloudfunctions.appspot.com/24db25c3-68f3-4b2c-abcd-8026ae81f5ab.zip 200
+[2026-03-02T20:49:32.104Z] <<< [apiv2][body] PUT https://storage.googleapis.com/uploads-688843013826.us-central1.cloudfunctions.appspot.com/24db25c3-68f3-4b2c-abcd-8026ae81f5ab.zip [omitted]
++  functions: functions source uploaded successfully 
+
+The following functions are found in your project but do not exist in your local source code:
+	analyze_food_ai(us-central1)
+	generate_recommendation_ai(us-central1)
+
+If you are renaming a function or changing its region, it is recommended that you create the new function first before deleting the old one to prevent event loss. For more info, visit https://firebase.google.com/docs/functions/manage-functions#modify
+
+[34m?[39m [1mWould you like to proceed with deletion? Selecting no will continue the rest [22m
+[1mof the deployments.[22m [2m(y/N)[22m[1A[106G[107G[1B[2K[1A[2K[G[34m?[39m [1mWould you like to proceed with deletion? Selecting no will continue the rest [22m
+[1mof the deployments.[22m [2m(y/N)[22m N[1A[107G[108G[1B[2K[1A[2K[G[34m?[39m [1mWould you like to proceed with deletion? Selecting no will continue the rest [22m
+[1mof the deployments.[22m [2m(y/N)[22m N\[1A[108G[109G[1B[2K[1A[2K[G[34m?[39m [1mWould you like to proceed with deletion? Selecting no will continue the rest [22m
+[1mof the deployments.[22m [2m(y/N)[22m N\n[1A[109G

@@ -1,0 +1,15 @@
+{
+    "indexes": [],
+    "fieldOverrides": [
+        {
+            "collectionGroup": "notes",
+            "fieldPath": "isSent",
+            "indexes": [
+                {
+                    "order": "ASCENDING",
+                    "queryScope": "COLLECTION_GROUP"
+                }
+            ]
+        }
+    ]
+}
