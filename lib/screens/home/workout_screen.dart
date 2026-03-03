@@ -445,38 +445,74 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            ...workouts.take(5).map((workout) => Card(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  child: ListTile(
-                                    leading: const Icon(Icons.fitness_center),
-                                    title: Text(workout.exerciseName),
-                                    subtitle: Text(
-                                      '${workout.timestamp.day}/${workout.timestamp.month}/${workout.timestamp.year}',
-                                    ),
-                                    trailing: Text(
-                                      '${workout.weight} kg',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.primaryColor,
+                            ...workouts.take(5).map((workout) => Dismissible(
+                                  key: Key(workout.id ?? workout.timestamp.toString()),
+                                  direction: DismissDirection.endToStart,
+                                  background: Container(
+                                    alignment: Alignment.centerRight,
+                                    padding: const EdgeInsets.only(right: 20.0),
+                                    color: Colors.red,
+                                    child: const Icon(Icons.delete, color: Colors.white),
+                                  ),
+                                  onDismissed: (direction) {
+                                    if (workout.id != null) {
+                                      _firestoreService.deleteWorkout(workout.id);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Antrenman silindi')),
+                                      );
+                                    }
+                                  },
+                                  child: Card(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: ListTile(
+                                      leading: const Icon(Icons.fitness_center),
+                                      title: Text(workout.exerciseName),
+                                      subtitle: Text(
+                                        '${workout.timestamp.day}/${workout.timestamp.month}/${workout.timestamp.year}',
+                                      ),
+                                      trailing: Text(
+                                        '${workout.weight} kg',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppTheme.primaryColor,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 )),
-                            ...calisthenics.take(5).map((calisthenic) => Card(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  child: ListTile(
-                                    leading: const Icon(Icons.accessibility_new, color: Colors.green),
-                                    title: Text(calisthenic.exerciseName),
-                                    subtitle: Text(
-                                      '${calisthenic.timestamp.day}/${calisthenic.timestamp.month}/${calisthenic.timestamp.year}',
-                                    ),
-                                    trailing: Text(
-                                      '${calisthenic.reps} tekrar',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.green,
+                            ...calisthenics.take(5).map((calisthenic) => Dismissible(
+                                  key: Key(calisthenic.id ?? calisthenic.timestamp.toString()),
+                                  direction: DismissDirection.endToStart,
+                                  background: Container(
+                                    alignment: Alignment.centerRight,
+                                    padding: const EdgeInsets.only(right: 20.0),
+                                    color: Colors.red,
+                                    child: const Icon(Icons.delete, color: Colors.white),
+                                  ),
+                                  onDismissed: (direction) {
+                                    if (calisthenic.id != null) {
+                                      _firestoreService.deleteCalisthenicsLog(calisthenic.id);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Calisthenics kaydı silindi')),
+                                      );
+                                    }
+                                  },
+                                  child: Card(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: ListTile(
+                                      leading: const Icon(Icons.accessibility_new, color: Colors.green),
+                                      title: Text(calisthenic.exerciseName),
+                                      subtitle: Text(
+                                        '${calisthenic.timestamp.day}/${calisthenic.timestamp.month}/${calisthenic.timestamp.year}',
+                                      ),
+                                      trailing: Text(
+                                        '${calisthenic.reps} tekrar',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green,
+                                        ),
                                       ),
                                     ),
                                   ),

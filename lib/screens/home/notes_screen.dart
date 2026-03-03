@@ -15,6 +15,8 @@ class _NotesScreenState extends State<NotesScreen> {
   final _firestoreService = FirestoreService();
   final _notificationService = NotificationService();
   TimeOfDay? _selectedTime;
+  final Set<int> _selectedDays = {}; // 1 (Mon) to 7 (Sun)
+  final List<String> _daysOfWeek = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
   @override
   void dispose() {
@@ -58,6 +60,7 @@ class _NotesScreenState extends State<NotesScreen> {
         text: _noteController.text.trim(),
         reminderTime: reminderDateTime?.toUtc(),
         timestamp: DateTime.now().toUtc(),
+        repeatDays: _selectedDays.isNotEmpty ? _selectedDays.toList() : null,
       );
 
       await _firestoreService.addNote(note);
@@ -72,6 +75,7 @@ class _NotesScreenState extends State<NotesScreen> {
         _noteController.clear();
         setState(() {
           _selectedTime = null;
+          _selectedDays.clear();
         });
       }
     } catch (e) {
@@ -147,6 +151,34 @@ class _NotesScreenState extends State<NotesScreen> {
                           ),
                       ],
                     ),
+                    if (_selectedTime != null) ...[
+                      const SizedBox(height: 16),
+                      const Text('Tekrarlanacak Günler (İsteğe Bağlı):'),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 8.0,
+                        children: List.generate(7, (index) {
+                          final dayInt = index + 1;
+                          final isSelected = _selectedDays.contains(dayInt);
+                          return FilterChip(
+                            label: Text(_daysOfWeek[index]),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedDays.add(dayInt);
+                                } else {
+                                  _selectedDays.remove(dayInt);
+                                }
+                              });
+                            },
+                            selectedColor: Colors.deepPurpleAccent.withOpacity(0.5),
+                            checkmarkColor: Colors.white,
+                          );
+                        }),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _saveNote,
@@ -197,20 +229,96 @@ class _NotesScreenState extends State<NotesScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    ...notes.map((note) => Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: const Icon(Icons.note, color: Colors.deepPurpleAccent),
-                            title: Text(note.text),
-                            subtitle: note.reminderTime != null
-                                ? Text(
-                                    'Hatırlatıcı: ${note.reminderTime!.day}/${note.reminderTime!.month} ${note.reminderTime!.hour.toString().padLeft(2, '0')}:${note.reminderTime!.minute.toString().padLeft(2, '0')}',
-                                    style: const TextStyle(color: Colors.amber),
-                                  )
-                                : null,
-                            trailing: Text(
-                              '${note.timestamp.day}/${note.timestamp.month}/${note.timestamp.year}',
-                              style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ...notes.map((note) => Dismissible(
+                          key: Key(note.id ?? note.timestamp.toString()),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 20.0),
+                            color: Colors.red,
+                            child: const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          onDismissed: (direction) {
+                            if (note.id != null) {
+                              _firestoreService.deleteNote(note.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Not silindi')),
+                              );
+                            }
+                          },
+                          child: Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              leading: const Icon(Icons.note, color: Colors.deepPurpleAccent),
+                              title: Text(
+                                note.text,
+                                style: TextStyle(
+                                  decoration: note.isSent ? TextDecoration.lineThrough : null,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (note.reminderTime != null)
+                                    Text(
+                                      'Hatırlatıcı: ${note.reminderTime!.toLocal().day}/${note.reminderTime!.toLocal().month} ${note.reminderTime!.toLocal().hour.toString().padLeft(2, '0')}:${note.reminderTime!.toLocal().minute.toString().padLeft(2, '0')}',
+                                      style: TextStyle(
+                                          color: note.isSent ? Colors.grey : Colors.amber),
+                                    ),
+                                  if (note.repeatDays != null && note.repeatDays!.isNotEmpty)
+                                    Text(
+                                      'Tekrar: ${note.repeatDays!.map((d) => _daysOfWeek[d - 1]).join(', ')}',
+                                      style: TextStyle(
+                                          color: note.isSent ? Colors.grey : Colors.cyanAccent, fontSize: 12),
+                                    ),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${note.timestamp.toLocal().day}/${note.timestamp.toLocal().month}/${note.timestamp.toLocal().year}',
+                                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                  ),
+                                  if (!note.isSent && note.reminderTime != null)
+                                    Builder(
+                                      builder: (context) {
+                                        final now = DateTime.now();
+                                        final reminderLocal = note.reminderTime!.toLocal();
+                                        final isToday = reminderLocal.year == now.year &&
+                                            reminderLocal.month == now.month &&
+                                            reminderLocal.day == now.day;
+                                        final isPast = reminderLocal.isBefore(now);
+                                        final isClickable = isToday || isPast;
+
+                                        return IconButton(
+                                          icon: Icon(
+                                            Icons.check_circle_outline,
+                                            color: isClickable ? Colors.green : Colors.grey.withOpacity(0.5),
+                                          ),
+                                          onPressed: () {
+                                            if (!isClickable) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text('Bu hatırlatıcı henüz bugünün görevi değil!'),
+                                                ),
+                                              );
+                                              return;
+                                            }
+                                            if (note.id != null) {
+                                              _firestoreService.markNoteAsSent(note);
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text('Hatırlatıcı tamamlandı olarak işaretlendi'),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        );
+                                      },
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         )),

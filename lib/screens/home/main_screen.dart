@@ -28,8 +28,8 @@ class _MainScreenState extends State<MainScreen> {
     const FoodScreen(),
     const WorkoutScreen(),
     const AnalysisScreen(),
-    const ProfileScreen(),
     const NotesScreen(),
+    const ProfileScreen(),
   ];
 
   @override
@@ -187,8 +187,8 @@ class _MainScreenState extends State<MainScreen> {
                 : _currentIndex == 2
                     ? Colors.red
                     : _currentIndex == 3
-                        ? Colors.green
-                        : Colors.deepPurpleAccent,
+                        ? Colors.deepPurpleAccent
+                        : Colors.green,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -209,12 +209,12 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Analiz',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person, key: profileKey),
-            label: 'Profil',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.note, key: notesKey),
             label: 'Notlar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person, key: profileKey),
+            label: 'Profil',
           ),
         ],
       ),

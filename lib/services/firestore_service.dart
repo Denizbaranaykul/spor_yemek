@@ -97,6 +97,18 @@ class FirestoreService {
             .toList());
   }
 
+  Future<void> deleteWorkout(String? workoutId) async {
+    if (_userId == null) throw Exception('User not authenticated');
+    if (workoutId == null || workoutId.isEmpty) return;
+
+    await _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('workouts')
+        .doc(workoutId)
+        .delete();
+  }
+
   Future<List<Workout>> getWorkoutsByDateRange(
     DateTime start,
     DateTime end,
@@ -220,6 +232,18 @@ class FirestoreService {
             .toList());
   }
 
+  Future<void> deleteCalisthenicsLog(String? logId) async {
+    if (_userId == null) throw Exception('User not authenticated');
+    if (logId == null || logId.isEmpty) return;
+
+    await _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('calisthenics_logs')
+        .doc(logId)
+        .delete();
+  }
+
   // Notes operations
   Future<void> addNote(NoteModel note) async {
     if (_userId == null) throw Exception('User not authenticated');
@@ -243,6 +267,51 @@ class FirestoreService {
         .map((snapshot) => snapshot.docs
             .map((doc) => NoteModel.fromMap(doc.id, doc.data()))
             .toList());
+  }
+
+  Future<void> deleteNote(String? noteId) async {
+    if (_userId == null) throw Exception('User not authenticated');
+    if (noteId == null || noteId.isEmpty) return;
+
+    await _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('notes')
+        .doc(noteId)
+        .delete();
+  }
+
+  Future<void> markNoteAsSent(NoteModel note) async {
+    if (_userId == null) throw Exception('User not authenticated');
+    if (note.id == null || note.id!.isEmpty) return;
+
+    if (note.repeatDays == null || note.repeatDays!.isEmpty) {
+      await _firestore
+          .collection('users')
+          .doc(_userId)
+          .collection('notes')
+          .doc(note.id)
+          .update({'isSent': true});
+    } else {
+      if (note.reminderTime == null) return;
+      
+      final currentReminderLocal = note.reminderTime!.toLocal();
+      DateTime nextReminderLocal = currentReminderLocal.add(const Duration(days: 1));
+      
+      while (!note.repeatDays!.contains(nextReminderLocal.weekday)) {
+        nextReminderLocal = nextReminderLocal.add(const Duration(days: 1));
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(_userId)
+          .collection('notes')
+          .doc(note.id)
+          .update({
+        'reminder_time': nextReminderLocal.toUtc().toIso8601String(),
+        'isSent': false,
+      });
+    }
   }
 
   // Daily goals

@@ -4,6 +4,7 @@ class NoteModel {
   final DateTime? reminderTime;
   final DateTime timestamp;
   final bool isSent;
+  final List<int>? repeatDays; // 1 = Monday, 7 = Sunday
 
   NoteModel({
     this.id,
@@ -11,6 +12,7 @@ class NoteModel {
     this.reminderTime,
     required this.timestamp,
     this.isSent = false,
+    this.repeatDays,
   });
 
   Map<String, dynamic> toMap() {
@@ -19,6 +21,7 @@ class NoteModel {
       'reminder_time': reminderTime?.toIso8601String(),
       'timestamp': timestamp.toIso8601String(),
       'isSent': isSent,
+      if (repeatDays != null) 'repeatDays': repeatDays,
     };
   }
 
@@ -31,6 +34,9 @@ class NoteModel {
           : null,
       timestamp: DateTime.parse(map['timestamp'] as String? ?? ''),
       isSent: map['isSent'] ?? false,
+      repeatDays: map['repeatDays'] != null 
+          ? List<int>.from(map['repeatDays']) 
+          : null,
     );
   }
 }

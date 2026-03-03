@@ -96,8 +96,8 @@ exports.sendNoteReminders = functions.pubsub
         const pushPromise = admin.messaging().send(payload)
           .then((response) => {
             console.log(`Successfully sent message to ${userId}:`, response);
-            // Mark note as sent
-            batch.update(doc.ref, { isSent: true });
+            // Persistent loop: We no longer mark isSent: true here. 
+            // The user must mark it done in the Flutter App.
           })
           .catch((error) => {
             console.error(`Error sending message to ${userId}:`, error);
