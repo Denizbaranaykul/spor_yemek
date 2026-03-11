@@ -1,3 +1,5 @@
+import '../utils/data_parser.dart';
+
 class NoteModel {
   final String? id;
   final String text;
@@ -30,9 +32,9 @@ class NoteModel {
       id: id,
       text: map['text'] ?? '',
       reminderTime: map['reminder_time'] != null 
-          ? DateTime.parse(map['reminder_time']) 
+          ? DataParser.parseDateTime(map['reminder_time']) 
           : null,
-      timestamp: DateTime.parse(map['timestamp'] as String? ?? ''),
+      timestamp: DataParser.parseDateTime(map['timestamp']),
       isSent: map['isSent'] ?? false,
       repeatDays: map['repeatDays'] != null 
           ? List<int>.from(map['repeatDays']) 

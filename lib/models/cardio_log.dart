@@ -1,3 +1,5 @@
+import '../utils/data_parser.dart';
+
 class CardioLog {
   final String? id;
   final int minutes;
@@ -19,8 +21,8 @@ class CardioLog {
   factory CardioLog.fromMap(String id, Map<String, dynamic> map) {
     return CardioLog(
       id: id,
-      minutes: map['minutes'] ?? 0,
-      timestamp: DateTime.parse(map['timestamp']),
+      minutes: DataParser.parseInt(map['minutes']),
+      timestamp: DataParser.parseDateTime(map['timestamp']),
     );
   }
 }

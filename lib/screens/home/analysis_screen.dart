@@ -169,8 +169,44 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                       return StreamBuilder<List<CardioLog>>(
                         stream: _firestoreService.getCardioLogs(),
                         builder: (context, cardioSnapshot) {
+                          if (mealsSnapshot.hasError || workoutsSnapshot.hasError || waterSnapshot.hasError || stepSnapshot.hasError || cardioSnapshot.hasError) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Veriler yüklenirken bir hata oluştu.',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Lütfen internet bağlantınızı kontrol edin veya daha sonra tekrar deneyin.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Colors.grey[600]),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  ElevatedButton(
+                                    onPressed: () => setState(() {}),
+                                    child: const Text('Tekrar Dene'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
                           if (!mealsSnapshot.hasData || !workoutsSnapshot.hasData || !waterSnapshot.hasData || !stepSnapshot.hasData || !cardioSnapshot.hasData || !_goalsLoaded) {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircularProgressIndicator(),
+                                  SizedBox(height: 16),
+                                  Text('Veriler hazırlanıyor...', style: TextStyle(color: Colors.grey)),
+                                ],
+                              ),
+                            );
                           }
 
                           final meals = mealsSnapshot.data ?? [];

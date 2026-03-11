@@ -1,3 +1,5 @@
+import '../utils/data_parser.dart';
+
 class StepLog {
   final String? id;
   final int steps;
@@ -19,8 +21,8 @@ class StepLog {
   factory StepLog.fromMap(String id, Map<String, dynamic> map) {
     return StepLog(
       id: id,
-      steps: map['steps'] ?? 0,
-      timestamp: DateTime.parse(map['timestamp']),
+      steps: DataParser.parseInt(map['steps']),
+      timestamp: DataParser.parseDateTime(map['timestamp']),
     );
   }
 }

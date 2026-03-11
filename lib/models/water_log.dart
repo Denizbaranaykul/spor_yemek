@@ -1,3 +1,5 @@
+import '../utils/data_parser.dart';
+
 class WaterLog {
   final String? id;
   final int amount; // in ml
@@ -19,8 +21,8 @@ class WaterLog {
   factory WaterLog.fromMap(String id, Map<String, dynamic> map) {
     return WaterLog(
       id: id,
-      amount: map['amount'] ?? 0,
-      timestamp: DateTime.parse(map['timestamp']),
+      amount: DataParser.parseInt(map['amount']),
+      timestamp: DataParser.parseDateTime(map['timestamp']),
     );
   }
 }

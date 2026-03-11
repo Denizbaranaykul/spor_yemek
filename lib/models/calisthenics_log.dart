@@ -1,3 +1,5 @@
+import '../utils/data_parser.dart';
+
 class CalisthenicsLog {
   final String? id;
   final String exerciseName;
@@ -23,8 +25,8 @@ class CalisthenicsLog {
     return CalisthenicsLog(
       id: id,
       exerciseName: map['exercise_name'] ?? '',
-      reps: map['reps']?.toInt() ?? 0,
-      timestamp: DateTime.parse(map['timestamp'] as String? ?? ''),
+      reps: DataParser.parseInt(map['reps']),
+      timestamp: DataParser.parseDateTime(map['timestamp']),
     );
   }
 }

@@ -1,3 +1,5 @@
+import '../utils/data_parser.dart';
+
 class Workout {
   final String? id;
   final String exerciseName;
@@ -23,8 +25,8 @@ class Workout {
     return Workout(
       id: id,
       exerciseName: map['exercise_name'] ?? '',
-      weight: (map['weight'] ?? 0).toDouble(),
-      timestamp: DateTime.parse(map['timestamp']),
+      weight: DataParser.parseDouble(map['weight']),
+      timestamp: DataParser.parseDateTime(map['timestamp']),
     );
   }
 }
